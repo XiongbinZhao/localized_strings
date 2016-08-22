@@ -1,6 +1,7 @@
 import os
 import optparse
 import localizable
+import plistlib
 
 class StringsLocator:
 
@@ -150,7 +151,7 @@ class StringsParser:
 					if ext == ".strings":
 						self.parse_strings(s)
 					elif ext == ".stringsdict":
-						self.parse_stringsdict()
+						self.parse_stringsdict(s)
 			print "\n"
 
 	def parse_strings(self, strings_path):
@@ -161,8 +162,10 @@ class StringsParser:
 				print "**" + key + ": " + value
 			print "\n"
 
-	def parse_stringsdict(self):
+	def parse_stringsdict(self, strings_path):
 		print("Parsing stringsdict")
+		plist_object = plistlib.readPlist(strings_path)
+		print plist_object
 
 def main():
 	p = optparse.OptionParser()
