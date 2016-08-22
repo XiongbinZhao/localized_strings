@@ -1,5 +1,6 @@
 import os
 import optparse
+import localizable
 
 class StringsLocator:
 
@@ -61,7 +62,7 @@ class StringsLocator:
 
 		#self.print_dict_items(strings_dict)
 
-		return ("strings", strings_dict)
+		return ("Strings", strings_dict)
 
 	def paths_for_plurals(self, project_path):
 		strings_paths = self.paths_with_files_passing_test_at_path(lambda f:f == "Localizable.stringsdict", project_path)
@@ -73,7 +74,7 @@ class StringsLocator:
 
 		#self.print_dict_items(strings_dict)
 
-		return ("plurals", strings_dict)
+		return ("Plurals", strings_dict)
 
 	def paths_for_arrays():
 		print("\n**** Getting arrays strings files ****")
@@ -94,7 +95,7 @@ class StringsLocator:
 
 		#self.print_dict_items(strings_dict)
 
-		return ("storyboards_strings", strings_dict)
+		return ("Storyboards_Strings", strings_dict)
 
 	def paths_for_nib_or_xib_strings(self, project_path):
 		nibs_paths = self.paths_with_files_passing_test_at_path(lambda f:f.endswith('.nib') or f.endswith('.xib'), project_path)
@@ -112,7 +113,7 @@ class StringsLocator:
 
 		#self.print_dict_items(strings_dict)
 
-		return ("nib_xib_strings", strings_dict)
+		return ("Nib_Xib_Strings", strings_dict)
 
 	def show_localized_strings_files_in_project(self, project_path):
 
@@ -140,20 +141,25 @@ class StringsParser:
 	def parse_localized_files(self, strings_list):
 		# Parse two types of files: .strings & .stringsdict
 		for strings_tuple in strings_list:
-			print strings_tuple[0]
+			print "******** " + strings_tuple[0] + " ********"
 			for key, values in strings_tuple[1].iteritems():
 				if len(values) > 0:
-					print(key + ":")
+					print "**** " + key + ":"
 				for s in values: # iterate all the .strings & .stringsdict files
 					root,ext = os.path.splitext(s)
 					if ext == ".strings":
-						self.parse_strings()
+						self.parse_strings(s)
 					elif ext == ".stringsdict":
 						self.parse_stringsdict()
 			print "\n"
 
-	def parse_strings(self):
-		print("Parsing strings")
+	def parse_strings(self, strings_path):
+		print "Parsing strings file: " + strings_path 
+		strings = localizable.parse_strings(filename = strings_path)
+		for s in strings:
+			for key, value in s.iteritems():
+				print "**" + key + ": " + value
+			print "\n"
 
 	def parse_stringsdict(self):
 		print("Parsing stringsdict")
