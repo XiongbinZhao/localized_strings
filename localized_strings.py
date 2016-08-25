@@ -150,12 +150,14 @@ class StringsParser:
 					root,ext = os.path.splitext(s)
 					if ext == ".strings":
 						self.parse_strings(s)
+						pass
 					elif ext == ".stringsdict":
 						self.parse_stringsdict(s)
+						pass
 			print "\n"
 
 	def parse_strings(self, strings_path):
-		print "Parsing strings file: " + strings_path 
+		print "---- Parsing strings file: " + strings_path 
 		strings = localizable.parse_strings(filename = strings_path)
 		for s in strings:
 			for key, value in s.iteritems():
@@ -163,9 +165,33 @@ class StringsParser:
 			print "\n"
 
 	def parse_stringsdict(self, strings_path):
-		print("Parsing stringsdict")
+		print("---- Parsing stringsdict file: " + strings_path)
 		plist_object = plistlib.readPlist(strings_path)
-		print plist_object
+		for key, value in plist_object.iteritems():
+			print "**NSLocalizedString: " + key
+			for sub_key, sub_value in value.iteritems():
+				variable = ""
+				if sub_key == "NSStringLocalizedFormatKey":
+					variable = sub_value[3: -1]
+					print "**" + sub_key + ": " + sub_value
+					print "**Variable: " + variable
+
+					if variable in value.keys():
+						plurals_rule_dict = value[variable]
+						spec_type_key = "NSStringFormatSpecTypeKey"
+						value_type_key = "NSStringFormatValueTypeKey"
+
+						for type_key in [spec_type_key, value_type_key]:
+							if type_key in plurals_rule_dict.keys():
+								print "**" + type_key + ": " + plurals_rule_dict[type_key]
+							else:
+								print "(** " + type_key + " is Missing **)"
+
+						for plural_rule_key in ["zero", "one", "two", "few", "many", "other"]:
+							if plural_rule_key in plurals_rule_dict.keys():
+								print "**" + plural_rule_key + ": " + plurals_rule_dict[plural_rule_key]
+
+			print "\n"
 
 def main():
 	p = optparse.OptionParser()
