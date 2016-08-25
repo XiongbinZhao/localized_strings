@@ -1,0 +1,6 @@
+
+/* Class = "IBUILabel"; text = "You have no new Personalized Coupons. Stay tuned for more next week"; ObjectID = "Wfr-Y2-zJn"; */
+//"Wfr-Y2-zJn.text" = "Congratulations you have loaded all coupons";
+
+/* Class = "IBUIButton"; normalTitle = "See Other Coupons"; ObjectID = "pgo-b1-m7F"; */
+"pgo-b1-m7F.normalTitle" = "See Other Coupons";

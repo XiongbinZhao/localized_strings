@@ -100,4 +100,12 @@ def parse_strings(content="", filename=None):
         end = end_
         key = _unescape_key(key)
         stringset.append({'key': key, 'value': _unescape(value), 'comment': comment})
+        pass
     return stringset
+
+#strings = parse_strings(filename='/Users/jackzhao/Desktop/localized_strings/CouponContentView.strings')
+strings_b = parse_strings(filename = '/Users/jackzhao/Desktop/localized_strings/CouponAllLoadedView.strings')
+
+for value in strings_b:
+    #print value
+    pass
