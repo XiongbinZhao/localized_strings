@@ -17,11 +17,9 @@ def main():
     elif arguments.project_path:
         project_path = arguments.project_path
 
-    seeker = base_seeker.StringsLocator()
-    strings_list = seeker.show_localized_strings_files_in_project(project_path)
+    strings_list = base_seeker.find_localized_strings_files_in_project(project_path)
 
     parser = base_parser.StringsParser()
     parser.parse_localized_files(strings_list)
-
 
 main()
