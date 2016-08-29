@@ -1,20 +1,6 @@
-# Adapted from Transifex: https://github.com/transifex/transifex/blob/master/transifex/resources/formats/strings.py
-# -*- coding: utf-8 -*-
-# GPLv2
-
-"""
-Apple strings file handler/compiler
-"""
 
 from __future__ import absolute_import
 import codecs, re, chardet
-
-
-"""
-Handler for Apple STRINGS translation files.
-
-Apple strings files *must* be encoded in cls.ENCODING encoding.
-"""
 
 format_encoding = 'UTF-16'
 
@@ -103,9 +89,5 @@ def parse_strings(content="", filename=None):
         pass
     return stringset
 
-#strings = parse_strings(filename='/Users/jackzhao/Desktop/localized_strings/CouponContentView.strings')
-strings_b = parse_strings(filename = '/Users/jackzhao/Desktop/localized_strings/CouponAllLoadedView.strings')
-
-for value in strings_b:
-    #print value
-    pass
+#strings = parse_strings(filename= 'CouponContentView.strings')
+strings_b = parse_strings(filename = 'CouponAllLoadedView.strings')
