@@ -85,7 +85,7 @@ class StringsParser:
         p = re.compile(strings)
         for r in p.finditer(f):
             key = r.group('key') or r.group('array_key')
-            value = r.group('value') or r.group('array_value')
+            value = r.group('value') or r.group('array_value') or ''
             comment = r.group('comment') or ''
             key = _unescape_key(key)
             value = _unescape(value)

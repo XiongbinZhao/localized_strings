@@ -4,6 +4,8 @@ import plistlib
 
 from base import base_seeker
 from base import base_parser
+from platforms import ios_seeker
+from platforms import android_seeker
 
 def main():
     p = argparse.ArgumentParser(description='Parsing Localized Strings Files for iOS/Android projects')
@@ -17,9 +19,10 @@ def main():
     elif arguments.project_path:
         project_path = arguments.project_path
 
-    strings_list = base_seeker.find_localized_strings_files_in_project(project_path)
+    ios_strings_list = ios_seeker.find_localized_strings(project_path)
+    android_strings_list = android_seeker.find_localized_strings(project_path)
 
-    parser = base_parser.StringsParser()
-    parser.parse_localized_files(strings_list)
+    #parser = base_parser.StringsParser()
+    #parser.parse_localized_files(ios_strings_list)
 
 main()
