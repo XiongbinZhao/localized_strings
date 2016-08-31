@@ -23,10 +23,27 @@ def paths_for_dirs_passing_test_at_path(test, path):
 
 def find_values_folders(project_path):
 	folder_paths = paths_for_dirs_passing_test_at_path(lambda f:f.startswith('values'), project_path)
+	result = []
 	for path in folder_paths:
-		dirname = os.path.dirname(path)
-		if dirname.endswith('/res'):
-			yield path
+		if "/build/intermediates/" not in path and not path.endswith("dp"):
+			dirname = os.path.dirname(path)
+			if dirname.endswith('/res'):
+				result.append(path)
+	return result
+
+def paths_for_localized_xmls(paths):
+	xml_dict = {}
+
+	for p in paths:
+		dirname = os.path.basename(p)
+		xml_in_path = paths_with_files_passing_test_at_path(lambda f:f.endswith('xml'), p)
+
+		for xml in xml_in_path:
+			if not dirname in xml_dict.keys():
+				xml_dict[dirname] = []
+			xml_dict[dirname].append(xml)
+
+	return [("xml",xml_dict)]
 
 def find_localized_strings(project_path):
 
@@ -34,10 +51,8 @@ def find_localized_strings(project_path):
 		error("", 0, "bad project path:%s" % project_path)
 		return
 
-	global values_folders
-	values_folders = find_values_folders(project_path)
+	global values_folders_paths
+	values_folders_paths = find_values_folders(project_path)
+	xml_tuple = paths_for_localized_xmls(values_folders_paths)
 
-	for p in values_folders:
-		print p
-
-	print values_folders
+	return xml_tuple

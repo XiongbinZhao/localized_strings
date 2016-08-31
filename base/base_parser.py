@@ -1,8 +1,7 @@
 
 from __future__ import absolute_import
-import os
-import plistlib
-import codecs, re, chardet
+import os, plistlib, codecs, re, chardet
+import xml.etree.ElementTree as etree
 
 format_encoding = 'UTF-16'
 
@@ -55,21 +54,48 @@ class StringsParser:
 			return
 
         for strings_tuple in strings_list:
-            print "******** " + strings_tuple[0] + " ********"
-            for key, values in strings_tuple[1].iteritems():
-                if len(values) > 0:
-                    print "**** " + key + ":"
-                for s in values: # iterate all the .strings & .stringsdict files
-                    root,ext = os.path.splitext(s)
-                    if ext == ".strings":
-                        self.parse_strings(s)
-                        pass
-                    elif ext == ".stringsdict":
-                        self.parse_stringsdict(s)
-                        pass
-            print "\n"
+            if len(strings_tuple[1].keys()) > 0:
+                print "******** " + strings_tuple[0] + " ********"
+                for key, values in strings_tuple[1].iteritems():
+                    if len(values) > 0:
+                        print "**** " + key + ":"
+                    for s in values: # iterate all the .strings & .stringsdict files & .xml files
+                        root,ext = os.path.splitext(s)
+                        if ext == ".strings":
+                            self.parse_strings(s)
+                            pass
+                        elif ext == ".stringsdict":
+                            self.parse_stringsdict(s)
+                            pass
+                        elif ext == ".xml":
+                            self.parse_xml(s)
+                            pass
+                print "\n"
 
-    def parse_strings(content="", strings_path=None):
+    def parse_xml(self, xml_path):
+        print("---- Parsing xml files: " + xml_path)
+        tree = etree.parse(xml_path)
+        root = tree.getroot()
+        for child in root:
+            print child.tag
+            if child.tag == "string":
+                text = child.text or ""
+                print "**Name: " + child.attrib["name"]
+                print "**Value: " + text
+            elif child.tag == "string-array":
+                print "**Name: " + child.attrib["name"]
+                for item in child:
+                    text = item.text or ""
+                    print "*Item: " + text
+            elif child.tag == "plurals":
+                print "**Name: " + child.attrib["name"]
+                for item in child:
+                    text = item.text or ""
+                    for key in item.attrib.keys():
+                        print "*" + item.attrib[key] + ": " + text
+            print "\t"
+
+    def parse_strings(self, strings_path=None):
     	print("---- Parsing strings file: " + strings_path)
         if strings_path is not None:
             content = _get_content(filename=strings_path)
@@ -91,8 +117,8 @@ class StringsParser:
             value = _unescape(value)
             stringset.append({'value': value, 'key': key, 'comment': comment})
         for s in stringset:
-            print "\n"
-            for key, value in s.iteritems():
+            print "\t"
+            for key, value in s:
                 print "**" + key + ": " + value
 
     def parse_stringsdict(self, strings_path):
@@ -122,4 +148,4 @@ class StringsParser:
 							if plural_rule_key in plurals_rule_dict.keys():
 								print "**" + plural_rule_key + ": " + plurals_rule_dict[plural_rule_key]
 
-			print "\n"
+			print "\t"
