@@ -55,25 +55,45 @@ class StringsParser:
 
         for strings_tuple in strings_list:
             if len(strings_tuple[1].keys()) > 0:
-                print "******** " + strings_tuple[0] + " ********"
+                #print "******** " + strings_tuple[0] + " ********"
                 for key, values in strings_tuple[1].iteritems():
                     if len(values) > 0:
-                        print "**** " + key + ":"
+                        #print "**** " + key + ":"
+                        pass
                     for s in values: # iterate all the .strings & .stringsdict files & .xml files
                         root,ext = os.path.splitext(s)
                         if ext == ".strings":
-                            self.parse_strings(s)
+                            #self.parse_strings(s)
                             pass
                         elif ext == ".stringsdict":
-                            self.parse_stringsdict(s)
+                            #self.parse_stringsdict(s)
                             pass
                         elif ext == ".xml":
-                            self.parse_xml(s)
+                            #self.parse_xml(s)
+                            pass
+                        elif ext == ".plist":
+                            self.parse_plist(s)
                             pass
                 print "\n"
 
+    def parse_plist(self, plist_path):
+        print("---- Parsing plist file: " + plist_path)
+        tree = etree.parse(plist_path)
+        root = tree.getroot()
+        for child in root:
+            plist_dict = {}
+            print len(child)
+            for idx, item in enumerate(child):
+                print idx
+                if item.tag == "key":
+                    
+            #for sub_child in child:
+                #print sub_child.attrib
+                #print sub_child.text
+            #print plist_dict
+
     def parse_xml(self, xml_path):
-        print("---- Parsing xml files: " + xml_path)
+        print("---- Parsing xml file: " + xml_path)
         tree = etree.parse(xml_path)
         root = tree.getroot()
         for child in root:
@@ -96,6 +116,7 @@ class StringsParser:
             print "\t"
 
     def parse_strings(self, strings_path=None):
+        print "\t"
     	print("---- Parsing strings file: " + strings_path)
         if strings_path is not None:
             content = _get_content(filename=strings_path)
@@ -117,9 +138,9 @@ class StringsParser:
             value = _unescape(value)
             stringset.append({'value': value, 'key': key, 'comment': comment})
         for s in stringset:
-            print "\t"
-            for key, value in s:
+            for key, value in s.iteritems():
                 print "**" + key + ": " + value
+            print "\t"
 
     def parse_stringsdict(self, strings_path):
 		print("---- Parsing stringsdict file: " + strings_path)

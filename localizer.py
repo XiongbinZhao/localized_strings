@@ -22,9 +22,8 @@ def main():
     ios_strings_list = ios_seeker.find_localized_strings(project_path)
     android_strings_list = android_seeker.find_localized_strings(project_path)
 
-    #print android_strings_list
-
     parser = base_parser.StringsParser()
-    parser.parse_localized_files(android_strings_list)
+    #parser.parse_localized_files(android_strings_list)
+    parser.parse_localized_files(ios_strings_list)
 
 main()

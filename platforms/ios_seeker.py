@@ -87,15 +87,31 @@ def paths_for_nib_or_xib_strings(project_path):
 
 	return ("Nib_Xib_Strings", strings_dict)
 
+def paths_for_plist_files(project_path):
+	plist_paths = paths_with_files_passing_test_at_path(lambda f:f.endswith('.plist'), project_path)
+	paths = []
+	paths_dict = {}
+	for p in plist_paths:
+		parentDirs = p.split('/')
+		if find('Pods', parentDirs) == False:
+			shouldAddToList = True
+			for d in parentDirs:
+				if d.endswith(".framework") or d.endswith(".xcodeproj"):
+					shouldAddToList = False
+					break
+			if shouldAddToList:
+				paths.append(p)
+	paths_dict["Plist"] = paths
+	return ("Plist", paths_dict)
+
 def find_lproj_folders(project_path):
 	lproj_paths = paths_for_dirs_passing_test_at_path(lambda f:f.endswith('.lproj'), project_path)
 	folders = []
-	for d in lproj_paths:
-		tail = os.path.basename(d)
+	for p in lproj_paths:
+		tail = os.path.basename(p)
 		if find(tail, folders) == False:
 			folders.append(tail)
 	return folders
-
 
 def find_localized_strings(project_path):
 
@@ -106,15 +122,13 @@ def find_localized_strings(project_path):
 	global lproj_folders
 	lproj_folders = find_lproj_folders(project_path)
 
-	strings_list = []
-
 	strings = paths_for_strings(project_path)
 	plurals = paths_for_plurals(project_path)
 	storyboards = paths_for_storyboards_strings(project_path)
 	xibs = paths_for_nib_or_xib_strings(project_path)
 	array = paths_for_arrays(project_path)
+	plist = paths_for_plist_files(project_path)
 
-	for item in [strings, plurals, storyboards, xibs, array]:
-		strings_list.append(item)
+	strings_list = [strings, plurals, storyboards, xibs, array, plist]
 
 	return strings_list
