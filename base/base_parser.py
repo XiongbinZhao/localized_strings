@@ -53,44 +53,62 @@ class StringsParser:
         if not strings_list:
 			return
 
+        global development_lan_dict
+        development_lan_dict = {}
+        self.get_development_dict(strings_list)
+
         for strings_tuple in strings_list:
-            if len(strings_tuple[1].keys()) > 0:
-                #print "******** " + strings_tuple[0] + " ********"
+            if len(strings_tuple[1].keys()) > 0 and strings_tuple[0] != "Plist":
+                print "******** " + strings_tuple[0] + " ********"
                 for key, values in strings_tuple[1].iteritems():
                     if len(values) > 0:
-                        #print "**** " + key + ":"
+                        print "**** " + key + ":"
                         pass
                     for s in values: # iterate all the .strings & .stringsdict files & .xml files
                         root,ext = os.path.splitext(s)
                         if ext == ".strings":
-                            #self.parse_strings(s)
+                            self.parse_strings(s)
                             pass
                         elif ext == ".stringsdict":
-                            #self.parse_stringsdict(s)
+                            self.parse_stringsdict(s)
                             pass
                         elif ext == ".xml":
-                            #self.parse_xml(s)
+                            self.parse_xml(s)
                             pass
-                        elif ext == ".plist":
-                            self.parse_plist(s)
-                            pass
+
                 print "\n"
 
+    def print_development_dict(self):
+        if development_lan_dict.keys() > 0:
+            for key, value in development_lan_dict.iteritems():
+                print "**Development_Language: " + key + " - " + value
+
+    def get_development_dict(self, strings_list):
+        for strings_tuple in strings_list:
+            if strings_tuple[0] == "Plist":
+                paths = strings_tuple[1]['Plist']
+                for p in paths:
+                    lan = self.parse_plist(p)
+                    if lan:
+                        dirname = os.path.basename(os.path.dirname(p))
+                        basename = os.path.basename(p)
+                        info_file = dirname + "/" + basename
+                        global development_lan_dict
+                        development_lan_dict[info_file] = lan
+
     def parse_plist(self, plist_path):
-        print("---- Parsing plist file: " + plist_path)
         tree = etree.parse(plist_path)
         root = tree.getroot()
+        language_key = "CFBundleDevelopmentRegion"
         for child in root:
             plist_dict = {}
-            print len(child)
             for idx, item in enumerate(child):
-                print idx
                 if item.tag == "key":
-                    
-            #for sub_child in child:
-                #print sub_child.attrib
-                #print sub_child.text
-            #print plist_dict
+                    value_item = child[idx+1]
+                    plist_dict[item.text] = value_item.text
+                    pass
+            if language_key in plist_dict.keys():
+                return plist_dict[language_key]
 
     def parse_xml(self, xml_path):
         print("---- Parsing xml file: " + xml_path)
@@ -140,6 +158,7 @@ class StringsParser:
         for s in stringset:
             for key, value in s.iteritems():
                 print "**" + key + ": " + value
+            self.print_development_dict()
             print "\t"
 
     def parse_stringsdict(self, strings_path):
@@ -168,5 +187,6 @@ class StringsParser:
 						for plural_rule_key in ["zero", "one", "two", "few", "many", "other"]:
 							if plural_rule_key in plurals_rule_dict.keys():
 								print "**" + plural_rule_key + ": " + plurals_rule_dict[plural_rule_key]
+                        self.print_development_dict()
 
 			print "\t"

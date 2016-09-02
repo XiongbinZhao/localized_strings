@@ -32,7 +32,5 @@ def find_localized_strings_files_in_project(project_path):
     if not project_path or not os.path.exists(project_path):
     	error("", 0, "bad project path:%s" %project_path)
     	return
-
-    global localized_folder_names
-
+    	
     paths_for_values_folders(project_path)
