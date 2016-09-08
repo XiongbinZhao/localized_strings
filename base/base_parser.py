@@ -100,6 +100,7 @@ def output_strings(strings):
             for key in plural_rule_keys:
                 if key in available_keys:
                     print "**" + key + ": " + dic[key]
+            print_development_dict()
             print "\t"
 
     elif strings_type == "xml":

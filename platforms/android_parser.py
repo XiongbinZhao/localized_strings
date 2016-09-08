@@ -51,7 +51,6 @@ def parse_xml(xml_path):
         else:
             return None
         strings["content"].append(xml_dict)
-    print strings
     return strings
 
 def start_parsing(strings_path):
