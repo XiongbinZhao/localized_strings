@@ -98,7 +98,8 @@ def path_for_project_pbxprojs(project_path):
     result = []
     for p in project_pbxprojs:
         dirname = os.path.dirname(p)
-        if not dirname.endswith('Pods.xcodeproj'):
+        dir_list = dirname.split('/')
+        if not dirname.endswith('Pods.xcodeproj') and "Pods" not in dir_list:
             result.append(p)
 
     if len(result) == 0:

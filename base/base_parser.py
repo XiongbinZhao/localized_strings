@@ -56,11 +56,9 @@ def parse_ios_localized_files(strings_list):
     if not strings_list:
         return
 
-    global proj_path
     global development_lan_dict
-    development_lan_dict = {}
-    #get_development_dict(strings_list)
 
+    development_lan_dict = {}
     development_lan_dict = ios_parser.get_schemes_info_plist(proj_path)
 
     ios_strings_list = []
@@ -99,10 +97,6 @@ def parse_android_localized_files(strings_list):
 def output_ios_strings(strings_list):
     for strings in strings_list:
         output_strings(strings)
-
-def output_ios_development_language(plist_list):
-    for plist in plist_list:
-        print "**Development_Language: " + plist["file_path"] + " - " + plist["CFBundleDevelopmentRegion"]
 
 def output_strings(strings):
     if strings == None:
@@ -170,6 +164,7 @@ def output_strings(strings):
 def print_development_dict():
     for key, value in development_lan_dict.iteritems():
         print "**Development_Language: " + key + " - " +  value['info_file'] + " - " + value["lan"]
+        pass
 
 def get_development_dict(strings_list):
     for strings_tuple in strings_list:
