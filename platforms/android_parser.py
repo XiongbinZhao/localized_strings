@@ -25,7 +25,7 @@ e.g.
 def parse_xml(xml_path):
     tree = etree.parse(xml_path)
     root = tree.getroot()
-    strings = {"file_type": "xml", "content": []}
+    strings = {"file_type": "xml", "file_path":xml_path, "content": []}
     for child in root:
         xml_dict = {"string_type": child.tag}
         if child.tag == "string":

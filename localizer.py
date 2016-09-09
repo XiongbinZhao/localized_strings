@@ -1,3 +1,6 @@
+
+#!/usr/bin/env python
+
 import os
 import argparse
 import plistlib
@@ -22,7 +25,8 @@ def main():
     ios_strings_list = ios_seeker.find_localized_strings(project_path)
     android_strings_list = android_seeker.find_localized_strings(project_path)
 
-    base_parser.parse_localized_files(android_strings_list)
-    base_parser.parse_localized_files(ios_strings_list)
+    base_parser.set_proj_path(project_path)
+    base_parser.parse_android_localized_files(android_strings_list)
+    base_parser.parse_ios_localized_files(ios_strings_list)
 
 main()

@@ -48,28 +48,61 @@ def _get_content_from_file(filename, encoding):
     finally:
         f.close()
 
-def parse_localized_files(strings_list):
+def set_proj_path(project_path):
+    global proj_path
+    proj_path = project_path
+
+def parse_ios_localized_files(strings_list):
     if not strings_list:
         return
 
+    global proj_path
     global development_lan_dict
     development_lan_dict = {}
-    get_development_dict(strings_list)
+    #get_development_dict(strings_list)
 
+    development_lan_dict = ios_parser.get_schemes_info_plist(proj_path)
+
+    ios_strings_list = []
+    ios_plist_list = []
     for strings_tuple in strings_list:
-        if len(strings_tuple[1].keys()) > 0 and strings_tuple[0] != "Plist":
-            print "******** " + strings_tuple[0] + " ********"
+        if len(strings_tuple[1].keys()) > 0:
             for key, values in strings_tuple[1].iteritems():
-                if len(values) > 0:
-                    print "**** " + key + ":"
-                    pass
 
                 for s in values:
                     ios_strings = ios_parser.start_parsing(s)
-                    android_strings = android_parser.start_parsing(s)
+                    if ios_strings is not None:
+                        if s.endswith(".plist"):
+                            ios_plist_list.append(ios_strings)
+                        else:
+                            ios_strings_list.append(ios_strings)
+
                     output_strings(ios_strings)
+
+def parse_android_localized_files(strings_list):
+    if not strings_list:
+        return
+
+    android_strings_list = []
+    for strings_tuple in strings_list:
+        if len(strings_tuple[1].keys()) > 0:
+            for key, values in strings_tuple[1].iteritems():
+
+                for s in values:
+                    android_strings = android_parser.start_parsing(s)
+
+                    if android_strings is not None:
+                        android_strings_list.append(android_strings)
+
                     output_strings(android_strings)
-            print "\n"
+
+def output_ios_strings(strings_list):
+    for strings in strings_list:
+        output_strings(strings)
+
+def output_ios_development_language(plist_list):
+    for plist in plist_list:
+        print "**Development_Language: " + plist["file_path"] + " - " + plist["CFBundleDevelopmentRegion"]
 
 def output_strings(strings):
     if strings == None:
@@ -135,9 +168,8 @@ def output_strings(strings):
             print "\t"
 
 def print_development_dict():
-    if development_lan_dict.keys() > 0:
-        for key, value in development_lan_dict.iteritems():
-            print "**Development_Language: " + key + " - " + value
+    for key, value in development_lan_dict.iteritems():
+        print "**Development_Language: " + key + " - " +  value['info_file'] + " - " + value["lan"]
 
 def get_development_dict(strings_list):
     for strings_tuple in strings_list:
