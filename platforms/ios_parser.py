@@ -250,12 +250,13 @@ def get_schemes_info_plist(project_path):
     p = project_pbxprojs[0]
     global project_src_dir
     project_src_dir = os.path.dirname(os.path.dirname(p))
-
     temp_plist_path = os.path.dirname(p) + "/temp.plist"
-    command_line = "plutil -convert xml1 -o - " + p + " > " + temp_plist_path
+    command_line = "plutil -convert xml1 -o - " + p.replace(" ", "\\ ") + " > " + temp_plist_path.replace(" ", "\\ ")
     os.system(command_line)
     
     info_plist_dic =  get_info_plist_from_pbxproj(temp_plist_path)
+    
+    os.remove(temp_plist_path)
 
     return info_plist_dic
 
