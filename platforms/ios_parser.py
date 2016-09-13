@@ -1,6 +1,7 @@
 
 import os, plistlib, codecs, re, chardet
 import xml.etree.ElementTree as etree
+from xml.parsers.expat import ExpatError
 
 format_encoding = 'UTF-16'
 
@@ -267,21 +268,7 @@ def get_lan_code(plist_relative_path):
     lan_code = lan["CFBundleDevelopmentRegion"]
 
     return lan_code
-            
-def parse_plist(plist_path):
 
-    tree = etree.parse(plist_path)
-    root = tree.getroot()
-    language_key = "CFBundleDevelopmentRegion"
-    for child in root:
-        plist_dict = {}
-        for idx, item in enumerate(child):
-            if item.tag == "key":
-                value_item = child[idx+1]
-                plist_dict[item.text] = value_item.text
-                pass
-        if language_key in plist_dict.keys():
-            return plist_dict[language_key]
 # Parsing strings file
 
 def parse_strings(strings_path=None):
@@ -298,8 +285,6 @@ def parse_strings(strings_path=None):
             f = f.lstrip(u'\ufeff')
         pass
 
-    print("---- Parsing strings file: " + strings_path)
-
     cp = r'(?:/\*(?P<comment>(?:[^*]|(?:\*+[^*/]))*\**)\*/)'
     kv = r'\s*(?P<line>(?:"(?P<key>[^"\\]*)")\s*=\s*(?:"(?P<value>[^"\\]*)"\s*;))'
     arrays_kv = r'(?:(?P<array_line>"(?P<array_key>[^"\\]*)"\s*=\s*(?P<array_value>\((?:\s*"[^"\\]*",)*\s*\);)))'
@@ -313,11 +298,26 @@ def parse_strings(strings_path=None):
         key = _unescape_key(key)
         value = _unescape(value)
         stringset.append({'value': value, 'key': key, 'comment': comment})
+
+    if len(resultdict["content"]) == 0:
+        print("Format of Strings file is not correct: " + strings_path + "\n")
+        return None
+    else:
+        print("---- Parsing strings file: " + strings_path)
+
     return resultdict
 
 def parse_stringsdict(strings_path):
-    print("---- Parsing stringsdict file: " + strings_path)
-    plist_object = plistlib.readPlist(strings_path)
+    try:
+        plist_object = plistlib.readPlist(strings_path)
+    except ExpatError:
+        print "---- The format of Stringsdict file is not correct: " + strings_path + "\n"
+        return
+
+    if plist_object is None:
+        print "---- Stringsdict file doesn't have any objects: " + strings_path + "\n"
+        return
+
     strings = {"file_type": "stringsdict","file_path": strings_path, "content": []}
     for key, value in plist_object.iteritems():
         resultdict = {}
@@ -341,7 +341,13 @@ def parse_stringsdict(strings_path):
                         if plural_rule_key in plurals_rule_dict.keys():
                             resultdict[plural_rule_key] = plurals_rule_dict[plural_rule_key]
         strings["content"].append(resultdict)
-    return strings
+
+    if len(strings["content"]) == 0:
+        print "---- Stringsdict file doesn't have any objects: " + strings_path + "\n"
+        return
+    else:
+        print("---- Parsing stringsdict file: " + strings_path)
+        return strings
 
 def parse_plist(plist_path):
     tree = etree.parse(plist_path)
@@ -368,5 +374,5 @@ def start_parsing(strings_path):
         return parse_stringsdict(strings_path)
         pass
     elif ext == ".plist":
-        return parse_plist(strings_path)
+        #return parse_plist(strings_path)
         pass

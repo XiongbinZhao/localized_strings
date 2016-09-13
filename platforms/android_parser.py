@@ -1,5 +1,6 @@
 import os
 import xml.etree.ElementTree as etree
+from xml.etree.ElementTree import ParseError
 
 """
 
@@ -23,8 +24,12 @@ e.g.
 """
 
 def parse_xml(xml_path):
-    tree = etree.parse(xml_path)
-    root = tree.getroot()
+    try:
+        tree = etree.parse(xml_path)
+        root = tree.getroot()
+    except ParseError:
+        print "---- The format of xml file is not correct: " + xml_path + "\n"
+        return
     strings = {"file_type": "xml", "file_path":xml_path, "content": []}
     for child in root:
         xml_dict = {"string_type": child.tag}
@@ -51,12 +56,16 @@ def parse_xml(xml_path):
         else:
             return None
         strings["content"].append(xml_dict)
-    return strings
+
+    if len(strings["content"]) == 0:
+        print "---- xml file has not objects: " + xml_path + "\n"
+        return
+    else:
+        print "---- Parsing xml file: " + xml_path
+        return strings
 
 def start_parsing(strings_path):
     ext = os.path.splitext(strings_path)[1]
     if ext == ".xml":
         strings = parse_xml(strings_path)
-        if strings != None:
-            print("---- Parsing xml file: " + strings_path)
-            return strings
+        return strings
