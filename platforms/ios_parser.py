@@ -82,7 +82,8 @@ def _get_content_from_file(filename, encoding):
         print "Error opening file %s with encoding %s: %s" %\
             (filename, format_encoding, e.message)
     except Exception, e:
-        print "Unhandled exception: %s" % e.message
+        #print "Unhandled exception: %s" % e.message
+        pass
     finally:
         f.close()
 
@@ -284,14 +285,21 @@ def parse_plist(plist_path):
 # Parsing strings file
 
 def parse_strings(strings_path=None):
-    print("---- Parsing strings file: " + strings_path)
     if strings_path is not None:
         content = _get_content(filename=strings_path)
     stringset = []
     resultdict = {"file_type": "strings", "file_path": strings_path, "content": stringset}
     f = content
-    if f.startswith(u'\ufeff'):
-        f = f.lstrip(u'\ufeff')
+    if f is None:
+        print("Strings file is empty: " + strings_path + "\n")
+        return
+    else:
+        if f.startswith(u'\ufeff'):
+            f = f.lstrip(u'\ufeff')
+        pass
+
+    print("---- Parsing strings file: " + strings_path)
+
     cp = r'(?:/\*(?P<comment>(?:[^*]|(?:\*+[^*/]))*\**)\*/)'
     kv = r'\s*(?P<line>(?:"(?P<key>[^"\\]*)")\s*=\s*(?:"(?P<value>[^"\\]*)"\s*;))'
     arrays_kv = r'(?:(?P<array_line>"(?P<array_key>[^"\\]*)"\s*=\s*(?P<array_value>\((?:\s*"[^"\\]*",)*\s*\);)))'
