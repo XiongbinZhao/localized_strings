@@ -62,7 +62,6 @@ def parse_ios_localized_files(strings_list):
     development_lan_dict = ios_parser.get_schemes_info_plist(proj_path)
 
     ios_strings_list = []
-    ios_plist_list = []
     for strings_tuple in strings_list:
         if len(strings_tuple[1].keys()) > 0:
             for key, values in strings_tuple[1].iteritems():
@@ -70,12 +69,14 @@ def parse_ios_localized_files(strings_list):
                 for s in values:
                     ios_strings = ios_parser.start_parsing(s)
                     if ios_strings is not None:
-                        if s.endswith(".plist"):
-                            ios_plist_list.append(ios_strings)
-                        else:
+                        if not s.endswith(".plist"):
                             ios_strings_list.append(ios_strings)
 
                     output_strings(ios_strings)
+    if len(ios_strings_list) == 0:
+        return None
+    else:
+        return ios_strings_list
 
 def parse_android_localized_files(strings_list):
     if not strings_list:
@@ -93,6 +94,10 @@ def parse_android_localized_files(strings_list):
                         android_strings_list.append(android_strings)
 
                     output_strings(android_strings)
+    if len(android_strings_list) == 0:
+        return None
+    else:
+        return android_strings_list
 
 def output_ios_strings(strings_list):
     for strings in strings_list:
@@ -101,7 +106,7 @@ def output_ios_strings(strings_list):
 def output_strings(strings):
     if strings == None:
         return
-        
+
     strings_type = strings["file_type"]
 
     if strings_type == "strings":

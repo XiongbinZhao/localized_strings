@@ -26,7 +26,10 @@ def main():
     android_strings_list = android_seeker.find_localized_strings(project_path)
 
     base_parser.set_proj_path(project_path)
-    base_parser.parse_android_localized_files(android_strings_list)
-    base_parser.parse_ios_localized_files(ios_strings_list)
+    android_strings_list = base_parser.parse_android_localized_files(android_strings_list)
+    ios_strings_list = base_parser.parse_ios_localized_files(ios_strings_list)
+
+    if android_strings_list is None and ios_strings_list is None:
+        print "Error: There is no Localized Strings file in the target project."
 
 main()
