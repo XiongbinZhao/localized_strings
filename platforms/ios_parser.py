@@ -175,6 +175,10 @@ def get_info_plist_from_pbxproj(pbxproj_plist):
         for l in paths_with_files_passing_test_at_path(lambda f:f.endswith(".xcscheme"), schemes_dir):
             schemes_list.append(l)
 
+        schemes_dir = os.path.dirname(pbxproj_plist) + "/xcuserdata"
+        for l in paths_with_files_passing_test_at_path(lambda f:f.endswith(".xcscheme"), schemes_dir):
+            schemes_list.append(l)
+
         schemes_dict = get_config_from_scheme(schemes_list)
 
         info_plist_dic = {}

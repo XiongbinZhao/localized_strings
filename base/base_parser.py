@@ -101,6 +101,7 @@ def output_ios_strings(strings_list):
 def output_strings(strings):
     if strings == None:
         return
+        
     strings_type = strings["file_type"]
 
     if strings_type == "strings":
@@ -165,30 +166,3 @@ def print_development_dict():
     for key, value in development_lan_dict.iteritems():
         print "**Development_Language: " + key + " - " +  value['info_file'] + " - " + value["lan"]
         pass
-
-def get_development_dict(strings_list):
-    for strings_tuple in strings_list:
-        if strings_tuple[0] == "Plist":
-            paths = strings_tuple[1]['Plist']
-            for p in paths:
-                lan = parse_plist(p)
-                if lan:
-                    dirname = os.path.basename(os.path.dirname(p))
-                    basename = os.path.basename(p)
-                    info_file = dirname + "/" + basename
-                    global development_lan_dict
-                    development_lan_dict[info_file] = lan
-
-def parse_plist(plist_path):
-    tree = etree.parse(plist_path)
-    root = tree.getroot()
-    language_key = "CFBundleDevelopmentRegion"
-    for child in root:
-        plist_dict = {}
-        for idx, item in enumerate(child):
-            if item.tag == "key":
-                value_item = child[idx+1]
-                plist_dict[item.text] = value_item.text
-                pass
-        if language_key in plist_dict.keys():
-            return plist_dict[language_key]
