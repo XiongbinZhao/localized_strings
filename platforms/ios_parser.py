@@ -303,9 +303,9 @@ def parse_strings(strings_path=None):
         print("Format of Strings file is not correct: " + strings_path + "\n")
         return None
     else:
-        print("---- Parsing strings file: " + strings_path)
-
-    return resultdict
+        resultdict["file_path"] = strings_path
+        print("---- Parsing strings file: " + resultdict["file_path"])
+        return resultdict
 
 def parse_stringsdict(strings_path):
     try:
@@ -346,6 +346,7 @@ def parse_stringsdict(strings_path):
         print "---- Stringsdict file doesn't have any objects: " + strings_path + "\n"
         return
     else:
+        resultdict["file_path"] = strings_path
         print("---- Parsing stringsdict file: " + strings_path)
         return strings
 

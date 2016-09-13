@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 from platforms import ios_parser
 from platforms import android_parser
-import os, plistlib, codecs, re, chardet
+import os, plistlib, codecs, re, chardet, shutil
 import xml.etree.ElementTree as etree
 
 format_encoding = 'UTF-16'
@@ -99,15 +99,89 @@ def parse_android_localized_files(strings_list):
     else:
         return android_strings_list
 
-def output_ios_strings(strings_list):
-    for strings in strings_list:
-        output_strings(strings)
+def output_txt_file(strings):
+    target_dir = "/Users/jackzhao/Desktop/script_output/"
+    output_file = os.path.basename(strings["file_path"]) + ".txt"
+    output_dir = os.path.basename(os.path.dirname(strings["file_path"]))
+
+    output_file_path = os.path.join(output_dir, output_file)
+    path_to_output = os.path.join(target_dir, output_file_path)
+
+    if not os.path.exists(os.path.split(path_to_output)[0]):
+        os.makedirs(os.path.split(path_to_output)[0])
+
+    if os.path.isfile(path_to_output):
+        text_file = open(path_to_output, "a")
+    else:
+        text_file = open(path_to_output, "w+")
+
+    strings_type = strings["file_type"]
+
+    if strings_type == "strings":
+        for dic in strings["content"]:
+            text_file.write("**comment: " + dic["comment"].encode("utf-8") + "\n")
+            text_file.write("**key: " + dic["key"].encode("utf-8") + "\n")
+            text_file.write("**value: " + dic["value"].encode("utf-8") + "\n")
+            text_file.write("\n")
+
+    elif strings_type == "stringsdict":
+        for dic in strings["content"]:
+            title_key = "NSLocalizedStringsdict"
+            localized_format_key = "NSStringLocalizedFormatKey"
+            value_type_key = "NSStringFormatValueTypeKey"
+            spec_type_key = "NSStringFormatSpecTypeKey"
+            variable_key = "Variable"
+
+            plural_rule_keys = ["zero", "one", "two", "few", "many", "other"]
+            available_keys = dic.keys()
+            for key in [title_key, localized_format_key, value_type_key, spec_type_key, variable_key]:
+                if key in available_keys:
+                    text_file.write("**" + key + ": " + dic[key].encode("utf-8") + "\n")
+            for key in plural_rule_keys:
+                if key in available_keys:
+                    text_file.write("**" + key + ": " + dic[key].encode("utf-8") + "\n")
+            text_file.write("\n")
+
+    elif strings_type == "xml":
+        for dic in strings["content"]:
+            keys = dic.keys()
+            if "string_type" in keys:
+                if "name" in keys:
+                    if "value" in keys:
+                        string_type = dic["string_type"].encode("utf-8")
+                        name = dic["name"].encode("utf-8")
+                        value = dic["value"]
+
+                        if string_type == "string":
+                            text_file.write("**string_type: " + string_type + "\n")
+                            text_file.write("**name: " + name + "\n")
+                            text_file.write("**value: " + value.encode("utf-8") + "\n")
+                            pass
+                        elif string_type == "plurals":
+                            text_file.write("**string_type: " + string_type + "\n")
+                            text_file.write("**name: " + name + "\n")
+                            text_file.write("**value: " + str(value) + "\n")
+                            pass
+                        elif string_type == "string-array":
+                            text_file.write("**string_type: " + string_type + "\n")
+                            text_file.write("**name: " + name + "\n")
+                            value_output = ""
+                            for v in value:
+                                value_output = value_output + v.encode("utf-8") + ", "
+                            text_file.write("**value: " + value_output + "\n")
+                            pass
+
+            text_file.write("\n")
+
+    text_file.close()
+
 
 def output_strings(strings):
     if strings == None:
         return
 
     strings_type = strings["file_type"]
+    output_txt_file(strings)
 
     if strings_type == "strings":
         for dic in strings["content"]:

@@ -61,6 +61,7 @@ def parse_xml(xml_path):
         print "---- xml file has not objects: " + xml_path + "\n"
         return
     else:
+        strings["file_path"] = xml_path
         print "---- Parsing xml file: " + xml_path
         return strings
 

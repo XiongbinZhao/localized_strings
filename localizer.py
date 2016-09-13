@@ -4,6 +4,7 @@
 import os
 import argparse
 import plistlib
+import shutil
 
 from base import base_seeker
 from base import base_parser
@@ -24,6 +25,11 @@ def main():
 
     ios_strings_list = ios_seeker.find_localized_strings(project_path)
     android_strings_list = android_seeker.find_localized_strings(project_path)
+
+    target_dir = "/Users/jackzhao/Desktop/script_output/"
+
+    if os.path.exists(target_dir):
+        shutil.rmtree(target_dir)
 
     base_parser.set_proj_path(project_path)
     android_strings_list = base_parser.parse_android_localized_files(android_strings_list)
