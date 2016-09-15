@@ -182,7 +182,7 @@ def output_strings(strings):
 
     strings_type = strings["file_type"]
     output_txt_file(strings)
-
+'''
     if strings_type == "strings":
         for dic in strings["content"]:
             print "**comment: " + dic["comment"]
@@ -240,7 +240,7 @@ def output_strings(strings):
                             pass
             
             print "\t"
-
+'''
 def print_development_dict():
     for key, value in development_lan_dict.iteritems():
         print "**Development_Language: " + key + " - " +  value['info_file'] + " - " + value["lan"]

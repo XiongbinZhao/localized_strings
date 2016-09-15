@@ -7,7 +7,8 @@ format_encoding = 'UTF-16'
 
 """
 
-Call def start_parsing(strings_path):
+Usage
+ios_parser.start_parsing(strings_path):
 
 Given a path of a .strings or .stringsdict file.
 Parse the file and return a dictionary as output.
@@ -16,7 +17,10 @@ e.g.
 .strings file
  {  
     "file_type": "strings", 
-    "content":[ {"comment": "This is comment", "key": "this is key", "value": "this is value"} ]
+    "content":[ {"comment": "This is comment", 
+                 "key": "this is key", 
+                 "value": "this is value"} ]
+    "file_path": "This is the file path"
  }
 
 .stringsdict file
