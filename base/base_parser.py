@@ -48,6 +48,10 @@ def _get_content_from_file(filename, encoding):
     finally:
         f.close()
 
+def set_output_path(output_path):
+    global target_dir
+    target_dir = output_path
+
 def set_proj_path(project_path):
     global proj_path
     proj_path = project_path
@@ -100,7 +104,6 @@ def parse_android_localized_files(strings_list):
         return android_strings_list
 
 def output_txt_file(strings):
-    target_dir = "/Users/jackzhao/Desktop/script_output/"
     output_file = os.path.basename(strings["file_path"]) + ".txt"
     output_dir = os.path.basename(os.path.dirname(strings["file_path"]))
 

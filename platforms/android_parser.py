@@ -3,11 +3,20 @@ import xml.etree.ElementTree as etree
 from xml.etree.ElementTree import ParseError
 
 """
+Usage
 
-Call def start_parsing(strings_path):
+Main Function:
+-- def android_parser.start_parsing(strings_path):
+    Given a path of a xml file.
+    Parse the file and return a dictionary as output.
 
-Given a path of a xml file.
-Parse the file and return a dictionary as output.
+Sub Function:
+-- def get_xml_content(xml_path):
+    Given a path of a xml file.
+    Open and read the xml file, return the content in xml-tree object
+-- def parse_xml(content):
+    Given the content of a xml file
+    Parse the content and return a dictionary
 
 e.g.
 .xml file
@@ -22,16 +31,22 @@ e.g.
     		  ]
  }
 """
-
-def parse_xml(xml_path):
+def get_xml_content(xml_path):
     try:
         tree = etree.parse(xml_path)
         root = tree.getroot()
     except ParseError:
         print "---- The format of xml file is not correct: " + xml_path + "\n"
         return
-    strings = {"file_type": "xml", "file_path":xml_path, "content": []}
-    for child in root:
+
+    return root
+
+def parse_xml(content):
+    if content is None:
+        return
+
+    stringset = []
+    for child in content:
         xml_dict = {"string_type": child.tag}
         if child.tag == "string":
             text = child.text or ""
@@ -55,18 +70,23 @@ def parse_xml(xml_path):
             xml_dict["value"] = items
         else:
             return None
-        strings["content"].append(xml_dict)
+        stringset.append(xml_dict)
 
-    if len(strings["content"]) == 0:
-        print "---- xml file has not objects: " + xml_path + "\n"
-        return
-    else:
-        strings["file_path"] = xml_path
-        print "---- Parsing xml file: " + xml_path
-        return strings
+    return stringset
 
 def start_parsing(strings_path):
     ext = os.path.splitext(strings_path)[1]
     if ext == ".xml":
-        strings = parse_xml(strings_path)
-        return strings
+        content = get_xml_content(strings_path)
+        result_stringset = parse_xml(content)
+
+        if result_stringset is not None:
+            if len(result_stringset) == 0:
+                print "---- xml file has not objects: " + xml_path + "\n"
+                return
+            else:
+                print "---- Parsing xml file: " + strings_path
+                return {"file_type": "xml", "file_path":strings_path, "content": result_stringset}
+
+
+

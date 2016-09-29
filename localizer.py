@@ -26,16 +26,18 @@ def main():
     ios_strings_list = ios_seeker.find_localized_strings(project_path)
     android_strings_list = android_seeker.find_localized_strings(project_path)
 
-    target_dir = "/Users/jackzhao/Desktop/script_output/"
+    output_dir = os.path.join(project_path, "script_output")
 
-    if os.path.exists(target_dir):
-        shutil.rmtree(target_dir)
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
 
+    base_parser.set_output_path(output_dir)
     base_parser.set_proj_path(project_path)
     android_strings_list = base_parser.parse_android_localized_files(android_strings_list)
     ios_strings_list = base_parser.parse_ios_localized_files(ios_strings_list)
 
     if android_strings_list is None and ios_strings_list is None:
         print "Error: There is no Localized Strings file in the target project."
-
+    else:
+        print "****\n****\n**** Done! Strings have been output to: " + output_dir
 main()

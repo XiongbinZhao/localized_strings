@@ -8,10 +8,26 @@ format_encoding = 'UTF-16'
 """
 
 Usage
-ios_parser.start_parsing(strings_path):
 
-Given a path of a .strings or .stringsdict file.
-Parse the file and return a dictionary as output.
+Main Function:
+-- ios_parser.start_parsing(strings_path):
+    Given a path of a .strings or .stringsdict file.
+    Parse the file and return a dictionary as output.
+
+Sub Function:
+-- get_strings_content(strings_path):
+    Given a path of a .strings file
+    Open and read the strings file, return the content in String
+-- parse_strings(content):
+    Given the content of a .strings file
+    Parse the content and return a dictionary
+
+-- get_stringsdict_content(strings_path):
+    Given a path of a .stringsdict file
+    Open and read the stringsdict file, return the content in Dictionary
+-- parse_stringsdict(content):
+    Given the content of a .strings file
+    Parse the content and return a dictionary
 
 e.g.
 .strings file
@@ -274,12 +290,9 @@ def get_lan_code(plist_relative_path):
     return lan_code
 
 # Parsing strings file
-
-def parse_strings(strings_path=None):
+def get_strings_content(strings_path = None):
     if strings_path is not None:
         content = _get_content(filename=strings_path)
-    stringset = []
-    resultdict = {"file_type": "strings", "file_path": strings_path, "content": stringset}
     f = content
     if f is None:
         print("Strings file is empty: " + strings_path + "\n")
@@ -287,7 +300,14 @@ def parse_strings(strings_path=None):
     else:
         if f.startswith(u'\ufeff'):
             f = f.lstrip(u'\ufeff')
-        pass
+    return f
+
+def parse_strings(content):
+
+    if content is None:
+        return
+
+    stringset = []
 
     cp = r'(?:/\*(?P<comment>(?:[^*]|(?:\*+[^*/]))*\**)\*/)'
     kv = r'\s*(?P<line>(?:"(?P<key>[^"\\]*)")\s*=\s*(?:"(?P<value>[^"\\]*)"\s*;))'
@@ -295,7 +315,7 @@ def parse_strings(strings_path=None):
 
     strings = r'(?:%s[ \t]*[\n]|[\r\n]|[\r]){0,1}%s|%s'%(cp, kv, arrays_kv)
     p = re.compile(strings)
-    for r in p.finditer(f):
+    for r in p.finditer(content):
         key = r.group('key') or r.group('array_key')
         value = r.group('value') or r.group('array_value') or ''
         comment = r.group('comment') or ''
@@ -303,15 +323,9 @@ def parse_strings(strings_path=None):
         value = _unescape(value)
         stringset.append({'value': value, 'key': key, 'comment': comment})
 
-    if len(resultdict["content"]) == 0:
-        print("Format of Strings file is not correct: " + strings_path + "\n")
-        return None
-    else:
-        resultdict["file_path"] = strings_path
-        print("---- Parsing strings file: " + resultdict["file_path"])
-        return resultdict
+    return stringset
 
-def parse_stringsdict(strings_path):
+def get_stringsdict_content(strings_path = None):
     try:
         plist_object = plistlib.readPlist(strings_path)
     except ExpatError:
@@ -322,8 +336,12 @@ def parse_stringsdict(strings_path):
         print "---- Stringsdict file doesn't have any objects: " + strings_path + "\n"
         return
 
-    strings = {"file_type": "stringsdict","file_path": strings_path, "content": []}
-    for key, value in plist_object.iteritems():
+    return plist_object
+
+def parse_stringsdict(plist_content):
+
+    result = []
+    for key, value in plist_content.iteritems():
         resultdict = {}
         resultdict['NSLocalizedStringsdict'] = key
         for sub_key, sub_value in value.iteritems():
@@ -344,15 +362,9 @@ def parse_stringsdict(strings_path):
                     for plural_rule_key in ["zero", "one", "two", "few", "many", "other"]:
                         if plural_rule_key in plurals_rule_dict.keys():
                             resultdict[plural_rule_key] = plurals_rule_dict[plural_rule_key]
-        strings["content"].append(resultdict)
+        result.append(resultdict)
 
-    if len(strings["content"]) == 0:
-        print "---- Stringsdict file doesn't have any objects: " + strings_path + "\n"
-        return
-    else:
-        resultdict["file_path"] = strings_path
-        print("---- Parsing stringsdict file: " + strings_path)
-        return strings
+    return result
 
 def parse_plist(plist_path):
     tree = etree.parse(plist_path)
@@ -373,11 +385,27 @@ def start_parsing(strings_path):
     ext = os.path.splitext(strings_path)[1]
 
     if ext == ".strings":
-        return parse_strings(strings_path)
-        pass
+        content =  get_strings_content(strings_path)
+        result_stringset = parse_strings(content)
+
+        if len(result_stringset) == 0:
+            print("Format of Strings file is not correct: " + strings_path + "\n")
+            return None
+        else:
+            print "---- Parsing strings file: " + strings_path
+            return {"file_type": "strings", "file_path": strings_path, "content": result_stringset}
+
     elif ext == ".stringsdict":
-        return parse_stringsdict(strings_path)
-        pass
-    elif ext == ".plist":
+        content = get_stringsdict_content(strings_path)
+        result_stringset = parse_stringsdict(content)
+
+        if len(result_stringset) == 0:
+            print "---- Stringsdict file doesn't have any objects: " + strings_path + "\n"
+            return
+        else:
+            print("---- Parsing stringsdict file: " + strings_path)
+            return {"file_type": "stringsdict","file_path": strings_path, "content": result_stringset}
+
+   # elif ext == ".plist":
         #return parse_plist(strings_path)
-        pass
+        #pass
