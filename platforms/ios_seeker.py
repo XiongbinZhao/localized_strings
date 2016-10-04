@@ -48,8 +48,8 @@ def paths_for_strings(project_path):
     return ("Strings", strings_dict)
 
 def paths_for_plurals(project_path):
-    strings_paths = paths_with_files_passing_test_at_path(lambda f:f == "Localizable.stringsdict", project_path)
 
+    strings_paths = paths_with_files_passing_test_at_path(lambda f:f.endswith('.stringsdict'), project_path)
     strings_dict = categorize_files(strings_paths)
 
     return ("Plurals", strings_dict)
