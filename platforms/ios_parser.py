@@ -311,10 +311,10 @@ def parse_strings(content):
 
     cp = r'(?:/\*(?P<comment>(?:[^*]|(?:\*+[^*/]))*\**)\*/)'
     kv = r'\s*(?P<line>(?:"(?P<key>[^"\\]*)")\s*=\s*(?:"(?P<value>[^"\\]*)"\s*;))'
-    arrays_kv = r'(?:(?P<array_line>"(?P<array_key>[^"\\]*)"\s*=\s*(?P<array_value>\((?:.*"[^"\\]*",)*.*\);)))'
+    arrays_kv = r'(?:(?P<array_line>"(?P<array_key>[^"\\]*)"\s*=\s*(?P<array_value>\((?:[\s\S]*"[^"\\]*",)*[\s\S]*\);)))'
 
     strings = r'(?:%s[ \t]*[\n]|[\r\n]|[\r]){0,1}%s|%s'%(cp, kv, arrays_kv)
-    p = re.compile(strings,re.DOTALL)
+    p = re.compile(strings)
     for r in p.finditer(content):
         key = r.group('key') or r.group('array_key')
         value = r.group('value') or r.group('array_value') or ''
@@ -327,7 +327,9 @@ def parse_strings(content):
     return stringset
 
 def remove_comments(content):
-    return re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,content)
+    content = re.sub(re.compile("//.*?\n" ) ,"" ,content)
+    content = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,content)
+    return content
 
 def get_stringsdict_content(strings_path = None):
     try:
