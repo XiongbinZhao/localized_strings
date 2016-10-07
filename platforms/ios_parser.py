@@ -15,19 +15,17 @@ Main Function:
     Parse the file and return a dictionary as output.
 
 Sub Function:
--- get_strings_content(strings_path):
-    Given a path of a .strings file
-    Open and read the strings file, return the content in String
--- parse_strings(content):
-    Given the content of a .strings file
-    Parse the content and return a dictionary
+-- temp_file_path = create_temp_plist(strings_path)
+    Create a temporary .plist file for .strings file
+-- content = content_from_plist(temp_plist_path)
+    Open and read the temporary .plist file, return the content in Dictionary
 
--- get_stringsdict_content(strings_path):
-    Given a path of a .stringsdict file
-    Open and read the stringsdict file, return the content in Dictionary
--- parse_stringsdict(content):
+-- content_list = parse_strings(content):
     Given the content of a .strings file
-    Parse the content and return a dictionary
+    Parse the content and return a dictionary for content filed
+-- content_list = parse_stringsdict(content):
+    Given the content of a .strings file
+    Parse the content and return a dictionary for content filed
 
 e.g.
 .strings file
@@ -66,69 +64,65 @@ e.g.
 }
 """
 
-def _unescape_key(s):
-    return s.replace('\\\n', '')
+# -----------------------------------------------------------------------------
+# Helper to get plain text content from file
+# -----------------------------------------------------------------------------
 
-def _unescape(s):
-    s = s.replace('\\\n', '')
-    return s.replace('\\"', '"').replace(r'\n', '\n').replace(r'\r', '\r')
+# def _unescape_key(s):
+#     return s.replace('\\\n', '')
 
-def _get_content(filename=None, content=None):
-    if content is not None:
-        if chardet.detect(content)['encoding'].startswith(format_encoding):
-            encoding = format_encoding
-        else:
-            encoding = 'UTF-8'
-        if isinstance(content, str):
-            content.decode(encoding)
-        else:
-            return content
-    if filename is None:
-        return None
-    return _get_content_from_file(filename, format_encoding)
+# def _unescape(s):
+#     s = s.replace('\\\n', '')
+#     return s.replace('\\"', '"').replace(r'\n', '\n').replace(r'\r', '\r')
 
-def _get_content_from_file(filename, encoding):
-    f = open(filename, 'r')
-    try:
-        content = f.read()
-        if chardet.detect(content)['encoding'].startswith(format_encoding):
-            encoding = format_encoding
-        else:
-            encoding = 'utf-8'
+# def _get_content(filename=None, content=None):
+#     if content is not None:
+#         if chardet.detect(content)['encoding'].startswith(format_encoding):
+#             encoding = format_encoding
+#         else:
+#             encoding = 'UTF-8'
+#         if isinstance(content, str):
+#             content.decode(encoding)
+#         else:
+#             return content
+#     if filename is None:
+#         return None
+#     return _get_content_from_file(filename, format_encoding)
 
-        f.close()
-        f = codecs.open(filename, 'r', encoding=encoding)
-        return f.read()
-    except IOError, e:
-        print "Error opening file %s with encoding %s: %s" %\
-            (filename, format_encoding, e.message)
-    except Exception, e:
-        #print "Unhandled exception: %s" % e.message
-        pass
-    finally:
-        f.close()
+# def _get_content_from_file(filename, encoding):
+#     f = open(filename, 'r')
+#     try:
+#         content = f.read()
+#         if chardet.detect(content)['encoding'].startswith(format_encoding):
+#             encoding = format_encoding
+#         else:
+#             encoding = 'utf-8'
 
+#         f.close()
+#         f = codecs.open(filename, 'r', encoding=encoding)
+#         return f.read()
+#     except IOError, e:
+#         print "Error opening file %s with encoding %s: %s" %\
+#             (filename, format_encoding, e.message)
+#     except Exception, e:
+#         #print "Unhandled exception: %s" % e.message
+#         pass
+#     finally:
+#         f.close()
+
+# Helper to get files path
 def paths_with_files_passing_test_at_path(test, path):
     for root, dirs, files in os.walk(path, topdown = True):
         for p in (os.path.join(root, f) for f in files if test(f)):
             yield p
+# -----------------------------------------------------------------------------
 
-#parsing project_pbxproj file
 
-def path_for_project_pbxprojs(project_path):
-    project_pbxprojs = paths_with_files_passing_test_at_path(lambda f:f == "project.pbxproj", project_path)
-    result = []
-    for p in project_pbxprojs:
-        dirname = os.path.dirname(p)
-        dir_list = dirname.split('/')
-        if not dirname.endswith('Pods.xcodeproj') and "Pods" not in dir_list:
-            result.append(p)
+# -----------------------------------------------------------------------------
+# parsing project_pbxproj file
+# -----------------------------------------------------------------------------
 
-    if len(result) == 0:
-        return None
-    else:
-        return result
-
+# Main Function to get development languages from plist
 def get_info_plist_from_pbxproj(pbxproj_plist):
     tree = etree.parse(pbxproj_plist)
     root = tree.getroot()
@@ -246,6 +240,20 @@ def get_info_plist_from_pbxproj(pbxproj_plist):
 
         return info_plist_dic
 
+def path_for_project_pbxprojs(project_path):
+    project_pbxprojs = paths_with_files_passing_test_at_path(lambda f:f == "project.pbxproj", project_path)
+    result = []
+    for p in project_pbxprojs:
+        dirname = os.path.dirname(p)
+        dir_list = dirname.split('/')
+        if not dirname.endswith('Pods.xcodeproj') and "Pods" not in dir_list:
+            result.append(p)
+
+    if len(result) == 0:
+        return None
+    else:
+        return result
+
 def get_config_from_scheme(scheme_list):
     if len(scheme_list) == 0:
         return
@@ -289,60 +297,9 @@ def get_lan_code(plist_relative_path):
 
     return lan_code
 
-# Parsing strings file
-def get_strings_content(strings_path = None):
-    if strings_path is not None:
-        content = _get_content(filename=strings_path)
-    f = content
-    if f is None:
-        print("Strings file is empty: " + strings_path + "\n")
-        return
-    else:
-        if f.startswith(u'\ufeff'):
-            f = f.lstrip(u'\ufeff')
-    return f
-
-def parse_strings(content):
-
-    if content is None:
-        return
-
-    stringset = []
-
-    cp = r'(?:/\*(?P<comment>(?:[^*]|(?:\*+[^*/]))*\**)\*/)'
-    kv = r'\s*(?P<line>(?:"(?P<key>[^"\\]*)")\s*=\s*(?:"(?P<value>[^"\\]*)"\s*;))'
-    arrays_kv = r'(?:(?P<array_line>"(?P<array_key>[^"\\]*)"\s*=\s*(?P<array_value>\((?:[\s\S]*"[^"\\]*",)*[\s\S]*\);)))'
-
-    strings = r'(?:%s[ \t]*[\n]|[\r\n]|[\r]){0,1}%s|%s'%(cp, kv, arrays_kv)
-    p = re.compile(strings)
-    for r in p.finditer(content):
-        key = r.group('key') or r.group('array_key')
-        value = r.group('value') or r.group('array_value') or ''
-        value = remove_comments(value)
-        comment = r.group('comment') or ''
-        key = _unescape_key(key)
-        value = _unescape(value)
-        stringset.append({'value': value, 'key': key, 'comment': comment})
-
-    return stringset
-
-def remove_comments(content):
-    content = re.sub(re.compile("//.*?\n" ) ,"" ,content)
-    content = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,content)
-    return content
-
-def get_stringsdict_content(strings_path = None):
-    try:
-        plist_object = plistlib.readPlist(strings_path)
-    except ExpatError:
-        print "---- The format of Stringsdict file is not correct: " + strings_path + "\n"
-        return
-
-    if plist_object is None:
-        print "---- Stringsdict file doesn't have any objects: " + strings_path + "\n"
-        return
-
-    return plist_object
+# -----------------------------------------------------------------------------
+# parsing methods for stringsdict, strings, plist
+# -----------------------------------------------------------------------------
 
 def parse_stringsdict(plist_content):
 
@@ -372,6 +329,28 @@ def parse_stringsdict(plist_content):
 
     return result
 
+def parse_strings(plist_content):
+
+    result = []
+
+    for key,value in plist_content.iteritems():
+        item_dict = {}
+        item_dict["key"] = key
+        value_string = ""
+
+        if isinstance(value, (str, unicode)):
+            value_string = value
+        else:
+            for sub_value in value:
+                value_string = value_string + "\"" + sub_value + "\" "
+            value_string = "{ " + value_string[:-1] + " }"
+
+        item_dict["value"] = value_string
+        item_dict["comment"] = ""
+        result.append(item_dict)
+
+    return result
+
 def parse_plist(plist_path):
     tree = etree.parse(plist_path)
     root = tree.getroot()
@@ -387,12 +366,52 @@ def parse_plist(plist_path):
             result = {"file_type": "plist", "file_path": plist_path, language_key: plist_dict[language_key]}
             return result
 
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+# Helper to create a temp plist file for strings, stringsdict file.
+# And get Content from plist in Dicitionary
+# -----------------------------------------------------------------------------
+
+def create_temp_plist(strings_path):
+    base_name = os.path.basename(strings_path)
+    dir_name = os.path.dirname(strings_path)
+    temp_base_name = base_name.replace(".strings", ".plist")
+    temp_plist_path = os.path.join(dir_name, temp_base_name)
+
+    command_line = "plutil -convert xml1 -o - " + strings_path.replace(" ", "\\ ") + " > " + temp_plist_path.replace(" ", "\\ ")
+    os.system(command_line)
+
+    return temp_plist_path
+
+def content_from_plist(plist_path):
+    try:
+        plist_object = plistlib.readPlist(plist_path)
+    except ExpatError:
+        print "---- The format of plist file is not correct: " + plist_path + "\n"
+        return
+
+    if plist_object is None:
+        print "---- plist file doesn't have any objects: " + plist_path + "\n"
+        return
+
+    return plist_object
+
+# -----------------------------------------------------------------------------
+
+
+# -----------------------------------------------------------------------------
+# Main Function to start parsing, for strings and stringsdict file
+# -----------------------------------------------------------------------------
 def start_parsing(strings_path):
     ext = os.path.splitext(strings_path)[1]
 
     if ext == ".strings":
-        content =  get_strings_content(strings_path)
+        temp_plist_path = create_temp_plist(strings_path)
+        content = content_from_plist(temp_plist_path)
         result_stringset = parse_strings(content)
+        os.remove(temp_plist_path)
 
         if len(result_stringset) == 0:
             print("Format of Strings file is not correct: " + strings_path + "\n")
@@ -400,10 +419,12 @@ def start_parsing(strings_path):
         else:
             print "---- Parsing strings file: " + strings_path
             return {"file_type": "strings", "file_path": strings_path, "content": result_stringset}
-
+    
     elif ext == ".stringsdict":
-        content = get_stringsdict_content(strings_path)
+        temp_plist_path = create_temp_plist(strings_path)
+        content = content_from_plist(temp_plist_path)
         result_stringset = parse_stringsdict(content)
+        os.remove(temp_plist_path)
 
         if len(result_stringset) == 0:
             print "---- Stringsdict file doesn't have any objects: " + strings_path + "\n"
@@ -415,3 +436,50 @@ def start_parsing(strings_path):
    # elif ext == ".plist":
         #return parse_plist(strings_path)
         #pass
+
+# -----------------------------------------------------------------------------
+
+
+
+# Parsing strings file
+# def get_strings_content(strings_path = None):
+#     if strings_path is not None:
+#         content = _get_content(filename=strings_path)
+#     f = content
+#     if f is None:
+#         print("Strings file is empty: " + strings_path + "\n")
+#         return
+#     else:
+#         if f.startswith(u'\ufeff'):
+#             f = f.lstrip(u'\ufeff')
+#     return f
+
+# def parse_strings(content):
+
+#     if content is None:
+#         return
+
+#     stringset = []
+
+#     cp = r'(?:/\*(?P<comment>(?:[^*]|(?:\*+[^*/]))*\**)\*/)'
+#     kv = r'\s*(?P<line>(?:"(?P<key>[^"\\]*)")\s*=\s*(?:"(?P<value>[^"\\]*)"\s*;))'
+#     arrays_kv = r'(?:(?P<array_line>"(?P<array_key>[^"\\]*)"\s*=\s*(?P<array_value>\((?:[\s\S]*"[^"\\]*",)*[\s\S]*\);)))'
+
+#     strings = r'(?:%s[ \t]*[\n]|[\r\n]|[\r]){0,1}%s|%s'%(cp, kv, arrays_kv)
+#     p = re.compile(strings)
+#     for r in p.finditer(content):
+#         key = r.group('key') or r.group('array_key')
+#         value = r.group('value') or r.group('array_value') or ''
+#         value = remove_comments(value)
+#         comment = r.group('comment') or ''
+#         key = _unescape_key(key)
+#         value = _unescape(value)
+#         stringset.append({'value': value, 'key': key, 'comment': comment})
+
+#     return stringset
+
+# def remove_comments(content):
+#     content = re.sub(re.compile("//.*?\n" ) ,"" ,content)
+#     content = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,content)
+#     return content
+
