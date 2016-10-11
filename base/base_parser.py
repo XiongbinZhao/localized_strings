@@ -125,6 +125,7 @@ def output_txt_file(strings):
             text_file.write("**comment: " + dic["comment"].encode("utf-8") + "\n")
             text_file.write("**key: " + dic["key"].encode("utf-8") + "\n")
             text_file.write("**value: " + dic["value"].encode("utf-8") + "\n")
+            write_development_dict(text_file)
             text_file.write("\n")
 
     elif strings_type == "stringsdict":
@@ -143,6 +144,7 @@ def output_txt_file(strings):
             for key in plural_rule_keys:
                 if key in available_keys:
                     text_file.write("**" + key + ": " + dic[key].encode("utf-8") + "\n")
+            write_development_dict(text_file)
             text_file.write("\n")
 
     elif strings_type == "xml":
@@ -244,6 +246,11 @@ def output_strings(strings):
             
             print "\t"
 '''
+
+def write_development_dict(text_file):
+    for key, value in development_lan_dict.iteritems():
+        text_file.write("**Development_Language: " + key + " - " +  value['info_file'] + " - " + value["lan"] + "\n")
+
 def print_development_dict():
     for key, value in development_lan_dict.iteritems():
         print "**Development_Language: " + key + " - " +  value['info_file'] + " - " + value["lan"]

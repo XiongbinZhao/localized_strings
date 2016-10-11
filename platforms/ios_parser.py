@@ -2,6 +2,7 @@
 import os, plistlib, codecs, re, chardet
 import xml.etree.ElementTree as etree
 from xml.parsers.expat import ExpatError
+from xml.etree.ElementTree import ParseError
 
 format_encoding = 'UTF-16'
 
@@ -285,7 +286,6 @@ def get_schemes_info_plist(project_path):
     os.system(command_line)
     
     info_plist_dic =  get_info_plist_from_pbxproj(temp_plist_path)
-    
     os.remove(temp_plist_path)
 
     return info_plist_dic
@@ -293,6 +293,10 @@ def get_schemes_info_plist(project_path):
 def get_lan_code(plist_relative_path):
     plist_path = project_src_dir + "/" + plist_relative_path
     lan = parse_plist(plist_path)
+
+    if lan is None:
+        return ""
+
     lan_code = lan["CFBundleDevelopmentRegion"]
 
     return lan_code
@@ -352,19 +356,23 @@ def parse_strings(plist_content):
     return result
 
 def parse_plist(plist_path):
-    tree = etree.parse(plist_path)
-    root = tree.getroot()
-    language_key = "CFBundleDevelopmentRegion"
-    for child in root:
-        plist_dict = {}
-        for idx, item in enumerate(child):
-            if item.tag == "key":
-                value_item = child[idx+1]
-                plist_dict[item.text] = value_item.text
-                pass
-        if language_key in plist_dict.keys():
-            result = {"file_type": "plist", "file_path": plist_path, language_key: plist_dict[language_key]}
-            return result
+    try:
+        tree = etree.parse(plist_path)
+        root = tree.getroot()
+        language_key = "CFBundleDevelopmentRegion"
+        for child in root:
+            plist_dict = {}
+            for idx, item in enumerate(child):
+                if item.tag == "key":
+                    value_item = child[idx+1]
+                    plist_dict[item.text] = value_item.text
+                    pass
+            if language_key in plist_dict.keys():
+                result = {"file_type": "plist", "file_path": plist_path, language_key: plist_dict[language_key]}
+                return result
+    except ParseError:
+        print "---- The plist file is not not well-formed: " + plist_path + "\n"
+        return
 
 # -----------------------------------------------------------------------------
 
@@ -439,20 +447,37 @@ def start_parsing(strings_path):
 
 # -----------------------------------------------------------------------------
 
+def get_key_and_comment(content):
+    if content is None:
+        return
 
+    stringset = []
+    sp = r'(?://(?P<slash_comment>.*))'
+    cp = r'(?:/\*(?P<star_comment>(?:[^*]|(?:\*+[^*/]))*\**)\*/)'
+    k = r'(?:"(?P<key>[^"\\]*)")\s*='
+
+    token = r'(?:%s[ \t]*[\n]|[\r\n]|[\r]){0,1}%s'%(cp, k)
+
+    p = re.compile(token)
+    for r in p.finditer(content):
+        key = r.group('key')
+        comment = r.group('slash_comment') or ''
+        # print comment
+        stringset.append({'key': key, 'comment': comment})
+    print stringset
 
 # Parsing strings file
-# def get_strings_content(strings_path = None):
-#     if strings_path is not None:
-#         content = _get_content(filename=strings_path)
-#     f = content
-#     if f is None:
-#         print("Strings file is empty: " + strings_path + "\n")
-#         return
-#     else:
-#         if f.startswith(u'\ufeff'):
-#             f = f.lstrip(u'\ufeff')
-#     return f
+def get_strings_content(strings_path = None):
+    if strings_path is not None:
+        content = _get_content(filename=strings_path)
+    f = content
+    if f is None:
+        print("Strings file is empty: " + strings_path + "\n")
+        return
+    else:
+        if f.startswith(u'\ufeff'):
+            f = f.lstrip(u'\ufeff')
+    return f
 
 # def parse_strings(content):
 
