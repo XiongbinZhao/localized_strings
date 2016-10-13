@@ -122,6 +122,8 @@ def find_localized_strings(project_path):
     global lproj_folders
     lproj_folders = find_lproj_folders(project_path)
 
+    find_sets(project_path)
+
     strings = paths_for_strings(project_path)
     plurals = paths_for_plurals(project_path)
     storyboards = paths_for_storyboards_strings(project_path)
@@ -132,3 +134,37 @@ def find_localized_strings(project_path):
     strings_list = [strings, plurals, storyboards, xibs, array, plist]
 
     return strings_list
+
+def find_sets(project_path):
+    lrpoj_folders = find_lproj_path(project_path)
+    # sets_dic = {}
+    sets_list = []
+    for p in lrpoj_folders:
+        basename = os.path.basename(p)
+        dirname = os.path.dirname(p)
+        if_dir_exists = False
+        for l in sets_list:
+            if l["Dir"] == dirname:
+                l["lproj"].append(basename)
+                if_dir_exists = True
+
+        if if_dir_exists == False:
+            set_dic = {"Dir": dirname, "lproj": [basename]}
+            sets_list.append(set_dic)
+    print sets_list
+        
+
+def find_lproj_path(project_path):
+    lproj_paths = paths_for_dirs_passing_test_at_path(lambda f:f.endswith('.lproj'), project_path)
+    folders_paths = []
+    for p in lproj_paths:
+        parentDirs = p.split('/')
+        if find('Pods', parentDirs) == False:
+            shouldAddToList = True
+            for d in parentDirs:
+                if d.endswith(".framework") or d.endswith(".xcodeproj"):
+                    shouldAddToList = False
+                    break
+            if shouldAddToList:
+                folders_paths.append(p)
+    return folders_paths

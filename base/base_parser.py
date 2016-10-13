@@ -248,8 +248,9 @@ def output_strings(strings):
 '''
 
 def write_development_dict(text_file):
-    for key, value in development_lan_dict.iteritems():
-        text_file.write("**Development_Language: " + key + " - " +  value['info_file'] + " - " + value["lan"] + "\n")
+    if development_lan_dict is not None:
+        for key, value in development_lan_dict.iteritems():
+            text_file.write("**Development_Language: " + key + " - " +  value['info_file'] + " - " + value["lan"] + "\n")
 
 def print_development_dict():
     for key, value in development_lan_dict.iteritems():
