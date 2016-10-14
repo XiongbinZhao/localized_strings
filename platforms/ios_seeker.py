@@ -140,19 +140,26 @@ def find_sets(project_path):
     # sets_dic = {}
     sets_list = []
     for p in lrpoj_folders:
+
+        files_list = []
+        for file_name in os.listdir(p):
+            if file_name.endswith(".strings") or file_name.endswith(".stringsdict"):
+                file_path = os.path.join(p, file_name)
+                files_list.append(file_path)
+
         basename = os.path.basename(p)
         dirname = os.path.dirname(p)
         if_dir_exists = False
         for l in sets_list:
             if l["Dir"] == dirname:
-                l["lproj"].append(basename)
+                l["lproj"].append({basename: files_list})
                 if_dir_exists = True
 
         if if_dir_exists == False:
-            set_dic = {"Dir": dirname, "lproj": [basename]}
+            set_dic = {"Dir": dirname, "lproj": [{basename: files_list}]}
             sets_list.append(set_dic)
-    print sets_list
-        
+
+    return sets_list
 
 def find_lproj_path(project_path):
     lproj_paths = paths_for_dirs_passing_test_at_path(lambda f:f.endswith('.lproj'), project_path)

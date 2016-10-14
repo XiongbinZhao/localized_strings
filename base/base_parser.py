@@ -56,6 +56,17 @@ def set_proj_path(project_path):
     global proj_path
     proj_path = project_path
 
+def parse_ios_localized_files_set(ios_strings_sets):
+    set_number = 1
+    for strings_set in ios_strings_sets:
+        for lproj_set in strings_set["lproj"]:
+            for key in lproj_set.keys():
+                for strings_path in lproj_set[key]:
+                    ios_strings = ios_parser.start_parsing(strings_path)
+                    output_strings(ios_strings, set_number)
+
+        set_number = set_number + 1
+
 def parse_ios_localized_files(strings_list):
     if not strings_list:
         return
@@ -103,11 +114,18 @@ def parse_android_localized_files(strings_list):
     else:
         return android_strings_list
 
-def output_txt_file(strings):
+def output_txt_file(strings, set_number = None):
     output_file = os.path.basename(strings["file_path"]) + ".txt"
     output_dir = os.path.basename(os.path.dirname(strings["file_path"]))
-
-    output_file_path = os.path.join(output_dir, output_file)
+    
+    output_file_path = ""
+    if set_number is None:
+        output_file_path = os.path.join(output_dir, output_file)
+    else:
+        set_dir = str(set_number)
+        output_file_path = os.path.join(set_dir, output_dir)
+        output_file_path = os.path.join(output_file_path, output_file)
+    
     path_to_output = os.path.join(target_dir, output_file_path)
 
     if not os.path.exists(os.path.split(path_to_output)[0]):
@@ -125,7 +143,7 @@ def output_txt_file(strings):
             text_file.write("**comment: " + dic["comment"].encode("utf-8") + "\n")
             text_file.write("**key: " + dic["key"].encode("utf-8") + "\n")
             text_file.write("**value: " + dic["value"].encode("utf-8") + "\n")
-            write_development_dict(text_file)
+            # write_development_dict(text_file)
             text_file.write("\n")
 
     elif strings_type == "stringsdict":
@@ -144,7 +162,7 @@ def output_txt_file(strings):
             for key in plural_rule_keys:
                 if key in available_keys:
                     text_file.write("**" + key + ": " + dic[key].encode("utf-8") + "\n")
-            write_development_dict(text_file)
+            # write_development_dict(text_file)
             text_file.write("\n")
 
     elif strings_type == "xml":
@@ -180,13 +198,12 @@ def output_txt_file(strings):
 
     text_file.close()
 
-
-def output_strings(strings):
+def output_strings(strings, set_number = None):
     if strings == None:
         return
 
     strings_type = strings["file_type"]
-    output_txt_file(strings)
+    output_txt_file(strings, set_number)
 '''
     if strings_type == "strings":
         for dic in strings["content"]:
