@@ -136,8 +136,18 @@ def find_localized_strings(project_path):
     return strings_list
 
 def find_sets(project_path):
+    '''
+    [ 
+     {
+       "Dir": "path/to/the/set", 
+       "lproj": {
+                 "en.lproj": ["path/to/A.strings","path/to/B.stringsdict","path/to/C.strings"],
+                 "lproj/folder": ["path/to/A.strings","path/to/B.stringsdict"]
+                }
+     }
+    ]
+    '''
     lrpoj_folders = find_lproj_path(project_path)
-    # sets_dic = {}
     sets_list = []
     for p in lrpoj_folders:
 
@@ -152,11 +162,11 @@ def find_sets(project_path):
         if_dir_exists = False
         for l in sets_list:
             if l["Dir"] == dirname:
-                l["lproj"].append({basename: files_list})
+                l["lproj"][basename] = files_list
                 if_dir_exists = True
 
         if if_dir_exists == False:
-            set_dic = {"Dir": dirname, "lproj": [{basename: files_list}]}
+            set_dic = {"Dir": dirname, "lproj": {basename: files_list}}
             sets_list.append(set_dic)
 
     return sets_list

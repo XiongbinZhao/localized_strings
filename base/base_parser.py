@@ -59,11 +59,10 @@ def set_proj_path(project_path):
 def parse_ios_localized_files_set(ios_strings_sets):
     set_number = 1
     for strings_set in ios_strings_sets:
-        for lproj_set in strings_set["lproj"]:
-            for key in lproj_set.keys():
-                for strings_path in lproj_set[key]:
-                    ios_strings = ios_parser.start_parsing(strings_path)
-                    output_strings(ios_strings, set_number)
+        for lproj, strings in strings_set["lproj"].iteritems():
+            for path in strings:
+                ios_strings = ios_parser.start_parsing(path)
+                output_strings(ios_strings, set_number)
 
         set_number = set_number + 1
 
