@@ -123,21 +123,73 @@ def paths_with_files_passing_test_at_path(test, path):
 # parsing project_pbxproj file
 # -----------------------------------------------------------------------------
 
-# Main Function to get development languages from plist
-def get_info_plist_from_pbxproj(pbxproj_plist):
+def get_objects_dict_items(pbxproj_plist):
     tree = etree.parse(pbxproj_plist)
     root = tree.getroot()
     root_object_key = None
     objects_idx = None
+    objects_dict_items = None
     for idx, item in enumerate(root[0]):
         if item.text == "rootObject":
-            root_object_key = root[0][idx + 1].text
+            root_object_key = root[0][idx+1].text
         if item.text == "objects":
             objects_idx = idx + 1
 
-    targets_keys = []
     if objects_idx is not None and root_object_key is not None:
         objects_dict_items = root[0][objects_idx]
+
+    return objects_dict_items
+
+def get_referrenced_files_from_pbxproj(pbxproj_plist):
+
+    objects_dict_items = get_objects_dict_items(pbxproj_plist)
+
+    files_list = []
+
+    if objects_dict_items is not None:
+        file_references_list = []
+
+        for i in objects_dict_items.itertext():
+            print i
+
+        # for idx, item in enumerate(objects_dict_items):
+            # item: item in {objects}
+            # print item.tag
+            # isFileReferencedType = False
+            # item_key = item.text
+            # for sub_idx, sub_item in enumerate(item):
+            #     if sub_item.text == "lastKnownFileType":
+            #         isFileReferencedType = True
+            # print item.text
+                    # item is file reference
+                    # file_references_list.append(item)
+        # for reference in file_references_list:
+        #     for idx, item in enumerate(reference):
+        #         if item.text == "path":
+        #             files_list.append(reference[idx + 1].text)
+
+    return files_list
+
+# Main Function to get development languages from plist
+def get_info_plist_from_pbxproj(pbxproj_plist):
+
+    tree = etree.parse(pbxproj_plist)
+    root = tree.getroot()
+    # info_plist_dic, the final output
+    info_plist_dic = None
+    root_object_key = None
+    objects_idx = None
+    objects_dict_items = None
+    for idx, item in enumerate(root[0]):
+        if item.text == "rootObject":
+            root_object_key = root[0][idx+1].text
+        if item.text == "objects":
+            objects_idx = idx + 1
+
+    if objects_idx is not None and root_object_key is not None:
+        objects_dict_items = root[0][objects_idx]
+
+    if objects_dict_items is not None:
 
         #enumerate through and find Targets keys
         for idx, item in enumerate(objects_dict_items):
@@ -237,7 +289,7 @@ def get_info_plist_from_pbxproj(pbxproj_plist):
                                 info_plist_path = None
                                 build_config_name = None
                                 break
-                        break
+                        break        
 
         return info_plist_dic
 
@@ -289,6 +341,19 @@ def get_schemes_info_plist(project_path):
     os.remove(temp_plist_path)
 
     return info_plist_dic
+
+def create_temp_plist_for_pbx(pbxproj_path):
+    global project_src_dir
+    project_src_dir = os.path.dirname(os.path.dirname(pbxproj_path))
+    temp_plist_path = os.path.dirname(pbxproj_path) + "/temp.plist"
+    command_line = "plutil -convert xml1 -o - " + pbxproj_path.replace(" ", "\\ ") + " > " + temp_plist_path.replace(" ", "\\ ")
+    os.system(command_line)
+    return temp_plist_path
+
+def get_files_for_pbxproj(pbxproj_path):
+    temp_plist_path = create_temp_plist_for_pbx(pbxproj_path)
+    get_referrenced_files_from_pbxproj(temp_plist_path)
+    # os.remove(temp_plist_path)
 
 def get_lan_code(plist_relative_path):
     plist_path = project_src_dir + "/" + plist_relative_path

@@ -185,3 +185,18 @@ def find_lproj_path(project_path):
             if shouldAddToList:
                 folders_paths.append(p)
     return folders_paths
+
+def find_all_pbxproj(project_path):
+    pbxproj_paths = paths_with_files_passing_test_at_path(lambda f:f.endswith('.pbxproj'), project_path)
+    result_paths = []
+    parse_pods = False
+    for p in pbxproj_paths:
+        if not parse_pods:
+            # Don't include Pods pbxproj
+            parentDirs = p.split('/')
+            if find('Pods', parentDirs) == True:
+                continue
+
+        result_paths.append(p)
+
+    return result_paths

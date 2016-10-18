@@ -28,15 +28,18 @@ def main():
     # ios_strings_list = ios_seeker.find_localized_strings(project_path)
     android_strings_list = android_seeker.find_localized_strings(project_path)
     ios_strings_list = ios_seeker.find_sets(project_path)
+    pbxproj_list = ios_seeker.find_all_pbxproj(project_path)
+    
+    ios_parser.get_files_for_pbxproj(pbxproj_list[0])
 
     output_dir = os.path.join(project_path, "script_output")
 
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
 
-    base_parser.set_output_path(output_dir)
-    base_parser.set_proj_path(project_path)
-    base_parser.parse_ios_localized_files_set(ios_strings_list)
+    # base_parser.set_output_path(output_dir)
+    # base_parser.set_proj_path(project_path)
+    # base_parser.parse_ios_localized_files_set(ios_strings_list)
     # android_strings_list = base_parser.parse_android_localized_files(android_strings_list)
     #ios_strings_list = base_parser.parse_ios_localized_files(ios_strings_list)
 
