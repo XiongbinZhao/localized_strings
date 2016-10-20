@@ -29,7 +29,6 @@ def main():
     android_strings_list = android_seeker.find_localized_strings(project_path)
     ios_strings_list = ios_seeker.find_sets(project_path)
     pbxproj_list = ios_seeker.find_all_pbxproj(project_path)
-    
     ios_parser.get_files_for_pbxproj(pbxproj_list[0])
 
     output_dir = os.path.join(project_path, "script_output")

@@ -147,22 +147,19 @@ def get_referrenced_files_from_pbxproj(pbxproj_plist):
     files_list = []
 
     if objects_dict_items is not None:
-        file_references_list = []
+        strings_file_reference_keys = []
+        for idx, item in enumerate(objects_dict_items):
+            item_key = objects_dict_items[idx - 1].text
+            for sub_idx, sub_item in enumerate(item):
+                if sub_item.text == "lastKnownFileType":
+                    if item[sub_idx + 1].text == "text.plist.stringsdict" or item[sub_idx + 1].text == "text.plist.strings":
+                        # get all the srings and stringsdict file key references
+                        strings_file_reference_keys.append(item_key)
 
-        for i in objects_dict_items.itertext():
-            print i
+        for t in strings_file_reference_keys:
+            print t
 
-        # for idx, item in enumerate(objects_dict_items):
-            # item: item in {objects}
-            # print item.tag
-            # isFileReferencedType = False
-            # item_key = item.text
-            # for sub_idx, sub_item in enumerate(item):
-            #     if sub_item.text == "lastKnownFileType":
-            #         isFileReferencedType = True
-            # print item.text
-                    # item is file reference
-                    # file_references_list.append(item)
+
         # for reference in file_references_list:
         #     for idx, item in enumerate(reference):
         #         if item.text == "path":
