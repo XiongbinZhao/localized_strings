@@ -113,7 +113,7 @@ def find_lproj_folders(project_path):
             folders.append(tail)
     return folders
 
-def find_localized_strings(project_path):
+def find_localized_strings(project_path, search_pod = False):
 
     if not project_path or not os.path.exists(project_path):
         error("", 0, "bad project path:%s" % project_path)
@@ -122,7 +122,7 @@ def find_localized_strings(project_path):
     global lproj_folders
     lproj_folders = find_lproj_folders(project_path)
 
-    find_sets(project_path)
+    find_sets(project_path, search_pod)
 
     strings = paths_for_strings(project_path)
     plurals = paths_for_plurals(project_path)
@@ -135,7 +135,7 @@ def find_localized_strings(project_path):
 
     return strings_list
 
-def find_sets(project_path):
+def find_sets(project_path, search_pod = False):
     '''
     [ 
      {
@@ -147,7 +147,8 @@ def find_sets(project_path):
      }
     ]
     '''
-    lrpoj_folders = find_lproj_path(project_path)
+
+    lrpoj_folders = find_lproj_path(project_path, search_pod)
     sets_list = []
     for p in lrpoj_folders:
 
@@ -171,12 +172,12 @@ def find_sets(project_path):
 
     return sets_list
 
-def find_lproj_path(project_path):
+def find_lproj_path(project_path, search_pod = False):
     lproj_paths = paths_for_dirs_passing_test_at_path(lambda f:f.endswith('.lproj'), project_path)
     folders_paths = []
     for p in lproj_paths:
         parentDirs = p.split('/')
-        if find('Pods', parentDirs) == False:
+        if search_pod:
             shouldAddToList = True
             for d in parentDirs:
                 if d.endswith(".framework") or d.endswith(".xcodeproj"):
@@ -184,6 +185,16 @@ def find_lproj_path(project_path):
                     break
             if shouldAddToList:
                 folders_paths.append(p)
+        else:
+            if find('Pods', parentDirs) == False:
+                shouldAddToList = True
+                for d in parentDirs:
+                    if d.endswith(".framework") or d.endswith(".xcodeproj"):
+                        shouldAddToList = False
+                        break
+                if shouldAddToList:
+                    folders_paths.append(p)
+        
     return folders_paths
 
 def find_all_pbxproj(project_path):

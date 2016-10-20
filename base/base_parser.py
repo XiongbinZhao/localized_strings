@@ -86,13 +86,15 @@ def set_proj_path(project_path):
 def parse_ios_localized_files_set(ios_strings_sets):
     set_number = 1
     for strings_set in ios_strings_sets:
+        file_count = 0
         for lproj, strings in strings_set["lproj"].iteritems():
             for path in strings:
                 ios_strings = ios_parser.start_parsing(path)
                 if ios_strings is not None:
                     ios_strings["Dir"] = strings_set["Dir"]
                 output_strings(ios_strings, set_number)
-        if len(strings) != 0:
+            file_count = len(strings) + file_count
+        if file_count != 0:
             set_number = set_number + 1
 
 def parse_android_localized_files(strings_list):
