@@ -3,6 +3,7 @@ import os, plistlib, codecs, re, chardet
 import xml.etree.ElementTree as etree
 from xml.parsers.expat import ExpatError
 from xml.etree.ElementTree import ParseError
+from shutil import copyfile
 
 format_encoding = 'UTF-16'
 
@@ -151,10 +152,6 @@ def get_referrenced_files_from_pbxproj(pbxproj_plist):
             item_key = objects_dict_items[idx - 1].text
             item_path = None
             for sub_idx, sub_item in enumerate(item):
-                # Find main group
-                # if sub_item.text == "mainGroup":
-                #     main_group_key = item[sub_idx + 1].text
-
                 # Find Strings File
                 if sub_item.text == "lastKnownFileType":
                     if item[sub_idx + 1].text == "text.plist.stringsdict" or item[sub_idx + 1].text == "text.plist.strings":
@@ -166,7 +163,7 @@ def get_referrenced_files_from_pbxproj(pbxproj_plist):
         for key_path_tuple in strings_file_key_path_tuples:
             files_list.append(get_path_for_ref_key(key_path_tuple[0], objects_dict_items, key_path_tuple[1]))
 
-    print files_list
+    return files_list
 
 def get_path_for_ref_key(ref_key, pbxproj_items, current_path = ""):
     if pbxproj_items is not None:
@@ -236,6 +233,7 @@ def get_info_plist_from_pbxproj(pbxproj_plist):
     if objects_dict_items is not None:
 
         #enumerate through and find Targets keys
+        targets_keys = []
         for idx, item in enumerate(objects_dict_items):
 
             if item.text == root_object_key:
@@ -386,17 +384,9 @@ def get_schemes_info_plist(project_path):
 
     return info_plist_dic
 
-def create_temp_plist_for_pbx(pbxproj_path):
-    global project_src_dir
-    project_src_dir = os.path.dirname(os.path.dirname(pbxproj_path))
-    temp_plist_path = os.path.dirname(pbxproj_path) + "/temp.plist"
-    command_line = "plutil -convert xml1 -o - " + pbxproj_path.replace(" ", "\\ ") + " > " + temp_plist_path.replace(" ", "\\ ")
-    os.system(command_line)
-    return temp_plist_path
-
 def get_files_for_pbxproj(pbxproj_path):
     temp_plist_path = create_temp_plist_for_pbx(pbxproj_path)
-    get_referrenced_files_from_pbxproj(temp_plist_path)
+    return get_referrenced_files_from_pbxproj(temp_plist_path)
     # os.remove(temp_plist_path)
 
 def get_lan_code(plist_relative_path):
@@ -487,9 +477,22 @@ def parse_plist(plist_path):
 
 
 # -----------------------------------------------------------------------------
-# Helper to create a temp plist file for strings, stringsdict file.
+# Helper to create a temp plist file for strings, stringsdict file and pbxproj file.
 # And get Content from plist in Dicitionary
 # -----------------------------------------------------------------------------
+
+def create_temp_plist_for_pbx(pbxproj_path):
+    global project_src_dir
+    xcodeproj_dir = os.path.dirname(pbxproj_path)
+    temp_pbxproj_path = os.path.join(xcodeproj_dir, "temp.pbxproj")
+    copyfile(pbxproj_path, temp_pbxproj_path)
+    project_src_dir = os.path.dirname(os.path.dirname(pbxproj_path))
+    temp_plist_path = os.path.dirname(pbxproj_path) + "/temp.plist"
+    command_line = "plutil -convert xml1 -o - " + pbxproj_path.replace(" ", "\\ ") + " > " + temp_plist_path.replace(" ", "\\ ")
+    os.system(command_line)
+
+    os.remove(temp_pbxproj_path)
+    return temp_plist_path
 
 def create_temp_plist(strings_path):
     base_name = os.path.basename(strings_path)

@@ -25,26 +25,18 @@ def main():
     elif arguments.project_path:
         project_path = arguments.project_path
 
-    # ios_strings_list = ios_seeker.find_localized_strings(project_path)
     android_strings_list = android_seeker.find_localized_strings(project_path)
     ios_strings_list = ios_seeker.find_sets(project_path)
     pbxproj_list = ios_seeker.find_all_pbxproj(project_path)
-    ios_parser.get_files_for_pbxproj(pbxproj_list[0])
 
-    output_dir = os.path.join(project_path, "script_output")
+    base_parser.parser_setup(project_path, None, pbxproj_list)
+    base_parser.parse_ios_localized_files_set(ios_strings_list)
+    android_strings_list = base_parser.parse_android_localized_files(android_strings_list)
 
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
-
-    # base_parser.set_output_path(output_dir)
-    # base_parser.set_proj_path(project_path)
-    # base_parser.parse_ios_localized_files_set(ios_strings_list)
-    # android_strings_list = base_parser.parse_android_localized_files(android_strings_list)
-    #ios_strings_list = base_parser.parse_ios_localized_files(ios_strings_list)
-
-    # if android_strings_list is None and ios_strings_list is None:
-    #     print "Error: There is no Localized Strings file in the target project."
-    # else:
-    #     print "****\n****\n**** Done! Strings have been output to: " + output_dir
+    if android_strings_list is None and ios_strings_list is None:
+        print "Error: There is no Localized Strings file in the target project."
+    else:
+        print "****\n****\n**** Done! Strings have been output to: " + base_parser.get_output_path()
     
 main()
+

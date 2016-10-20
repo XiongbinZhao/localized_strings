@@ -48,6 +48,33 @@ def _get_content_from_file(filename, encoding):
     finally:
         f.close()
 
+def parser_setup(project_path, output_path = None, proj_paths = []):
+    global proj_path
+    proj_path = project_path
+
+    global target_dir
+    if output_path == None:
+        target_dir = os.path.join(project_path, "script_output")
+    else:
+        target_dir = output_path
+
+    if os.path.exists(target_dir):
+        shutil.rmtree(target_dir)
+
+    global pbx_files_dict
+    pbx_files_dict = {}
+
+    for p in proj_paths:
+        absolute_path_list = []
+        for relative_p in ios_parser.get_files_for_pbxproj(p):
+            absolute_path = os.path.join(proj_path, relative_p)
+            absolute_path_list.append(absolute_path)
+        if len(absolute_path_list) != 0:
+            pbx_files_dict[os.path.dirname(p)] = absolute_path_list
+
+def get_output_path():
+    return target_dir
+
 def set_output_path(output_path):
     global target_dir
     target_dir = output_path
@@ -62,35 +89,11 @@ def parse_ios_localized_files_set(ios_strings_sets):
         for lproj, strings in strings_set["lproj"].iteritems():
             for path in strings:
                 ios_strings = ios_parser.start_parsing(path)
+                if ios_strings is not None:
+                    ios_strings["Dir"] = strings_set["Dir"]
                 output_strings(ios_strings, set_number)
-
-        set_number = set_number + 1
-
-def parse_ios_localized_files(strings_list):
-    if not strings_list:
-        return
-
-    global development_lan_dict
-
-    development_lan_dict = {}
-    development_lan_dict = ios_parser.get_schemes_info_plist(proj_path)
-
-    ios_strings_list = []
-    for strings_tuple in strings_list:
-        if len(strings_tuple[1].keys()) > 0:
-            for key, values in strings_tuple[1].iteritems():
-
-                for s in values:
-                    ios_strings = ios_parser.start_parsing(s)
-                    if ios_strings is not None:
-                        if not s.endswith(".plist"):
-                            ios_strings_list.append(ios_strings)
-
-                    output_strings(ios_strings)
-    if len(ios_strings_list) == 0:
-        return None
-    else:
-        return ios_strings_list
+        if len(strings) != 0:
+            set_number = set_number + 1
 
 def parse_android_localized_files(strings_list):
     if not strings_list:
@@ -135,7 +138,14 @@ def output_txt_file(strings, set_number = None):
     else:
         text_file = open(path_to_output, "w+")
 
+    strings_path = strings["file_path"]
+    for pbxproj_path, items in pbx_files_dict.iteritems():
+        xcodeproj_path = os.path.dirname(pbxproj_path)
+        if strings_path in items:
+            text_file.write("**** Xcode_Proj_Path: " + pbxproj_path.encode("utf-8") + "\n")
+
     strings_type = strings["file_type"]
+    text_file.write("**** Set_Dir_Path: " + strings["Dir"].encode("utf-8") + "\n\n")
 
     if strings_type == "strings":
         for dic in strings["content"]:
