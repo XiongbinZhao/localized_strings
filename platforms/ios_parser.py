@@ -145,27 +145,74 @@ def get_referrenced_files_from_pbxproj(pbxproj_plist):
     objects_dict_items = get_objects_dict_items(pbxproj_plist)
 
     files_list = []
-
     if objects_dict_items is not None:
-        strings_file_reference_keys = []
+        strings_file_key_path_tuples = []
         for idx, item in enumerate(objects_dict_items):
             item_key = objects_dict_items[idx - 1].text
+            item_path = None
             for sub_idx, sub_item in enumerate(item):
+                # Find main group
+                # if sub_item.text == "mainGroup":
+                #     main_group_key = item[sub_idx + 1].text
+
+                # Find Strings File
                 if sub_item.text == "lastKnownFileType":
                     if item[sub_idx + 1].text == "text.plist.stringsdict" or item[sub_idx + 1].text == "text.plist.strings":
                         # get all the srings and stringsdict file key references
-                        strings_file_reference_keys.append(item_key)
+                        key_path_tuple = (item_key, item[sub_idx + 5].text)
+                        strings_file_key_path_tuples.append(key_path_tuple)
+                    break
 
-        for t in strings_file_reference_keys:
-            print t
+        for key_path_tuple in strings_file_key_path_tuples:
+            files_list.append(get_path_for_ref_key(key_path_tuple[0], objects_dict_items, key_path_tuple[1]))
 
+    print files_list
 
-        # for reference in file_references_list:
-        #     for idx, item in enumerate(reference):
-        #         if item.text == "path":
-        #             files_list.append(reference[idx + 1].text)
+def get_path_for_ref_key(ref_key, pbxproj_items, current_path = ""):
+    if pbxproj_items is not None:
+        for idx, item in enumerate(pbxproj_items):
+            for sub_idx, sub_item in enumerate(item):
+                if sub_item.text == "PBXGroup" or sub_item.text == "PBXVariantGroup" :
+                    # Locate to PBXGroup or PBXVariantGroup
+                    for re_idx, re_item in enumerate(item):
+                        # Got Children
+                        if re_item.text == "children":
+                            for child_idx, child_item in enumerate(item[re_idx + 1]):
+                                if child_item.text == ref_key:
+                                    # Got the ref_key
+                                    path = None
+                                    parent_key = None
+                                    for p_idx, p_item in enumerate(item):
+                                        if p_item.text == "path":
+                                            # Got the path, add it to the current path
+                                            path = item[p_idx + 1].text
+                                            parent_key = pbxproj_items[idx - 1].text
+                                            if current_path == "":
+                                                current_path = path
+                                            else: 
+                                                current_path = path + "/" + current_path
+                                            break
 
-    return files_list
+                                        if p_item.text == "name":
+                                            # Likely to be group, add it if it is the first path
+                                            path = item[p_idx + 1].text
+                                            parent_key = pbxproj_items[idx - 1].text
+                                            if current_path == "":
+                                                current_path = path
+                                            break
+
+                                    path = get_path_for_ref_key(parent_key, pbxproj_items, current_path)
+                                    if path == None:
+                                        return current_path
+                                    else:
+                                        return path
+
+                                    break
+                            break
+                    break
+
+    return None
+
 
 # Main Function to get development languages from plist
 def get_info_plist_from_pbxproj(pbxproj_plist):
