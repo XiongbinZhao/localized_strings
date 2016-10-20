@@ -77,40 +77,40 @@ e.g.
 #     s = s.replace('\\\n', '')
 #     return s.replace('\\"', '"').replace(r'\n', '\n').replace(r'\r', '\r')
 
-# def _get_content(filename=None, content=None):
-#     if content is not None:
-#         if chardet.detect(content)['encoding'].startswith(format_encoding):
-#             encoding = format_encoding
-#         else:
-#             encoding = 'UTF-8'
-#         if isinstance(content, str):
-#             content.decode(encoding)
-#         else:
-#             return content
-#     if filename is None:
-#         return None
-#     return _get_content_from_file(filename, format_encoding)
+def _get_content(filename=None, content=None):
+    if content is not None:
+        if chardet.detect(content)['encoding'].startswith(format_encoding):
+            encoding = format_encoding
+        else:
+            encoding = 'UTF-8'
+        if isinstance(content, str):
+            content.decode(encoding)
+        else:
+            return content
+    if filename is None:
+        return None
+    return _get_content_from_file(filename, format_encoding)
 
-# def _get_content_from_file(filename, encoding):
-#     f = open(filename, 'r')
-#     try:
-#         content = f.read()
-#         if chardet.detect(content)['encoding'].startswith(format_encoding):
-#             encoding = format_encoding
-#         else:
-#             encoding = 'utf-8'
+def _get_content_from_file(filename, encoding):
+    f = open(filename, 'r')
+    try:
+        content = f.read()
+        if chardet.detect(content)['encoding'].startswith(format_encoding):
+            encoding = format_encoding
+        else:
+            encoding = 'utf-8'
 
-#         f.close()
-#         f = codecs.open(filename, 'r', encoding=encoding)
-#         return f.read()
-#     except IOError, e:
-#         print "Error opening file %s with encoding %s: %s" %\
-#             (filename, format_encoding, e.message)
-#     except Exception, e:
-#         #print "Unhandled exception: %s" % e.message
-#         pass
-#     finally:
-#         f.close()
+        f.close()
+        f = codecs.open(filename, 'r', encoding=encoding)
+        return f.read()
+    except IOError, e:
+        print "Error opening file %s with encoding %s: %s" %\
+            (filename, format_encoding, e.message)
+    except Exception, e:
+        #print "Unhandled exception: %s" % e.message
+        pass
+    finally:
+        f.close()
 
 # Helper to get files path
 def paths_with_files_passing_test_at_path(test, path):
@@ -531,7 +531,13 @@ def start_parsing(strings_path):
         temp_plist_path = create_temp_plist(strings_path)
         content = content_from_plist(temp_plist_path)
         result_stringset = parse_strings(content)
+        plain_text_content = get_strings_content(strings_path)
+        key_comment = get_key_and_comment(plain_text_content)
         os.remove(temp_plist_path)
+
+        for strings in result_stringset:
+            if strings["key"] in key_comment.keys():
+                strings["comment"] = key_comment[strings["key"]]
 
         if len(result_stringset) == 0:
             print("Format of Strings file is not correct: " + strings_path + "\n")
@@ -563,20 +569,30 @@ def get_key_and_comment(content):
     if content is None:
         return
 
-    stringset = []
+    key_comment = {}
     sp = r'(?://(?P<slash_comment>.*))'
     cp = r'(?:/\*(?P<star_comment>(?:[^*]|(?:\*+[^*/]))*\**)\*/)'
     k = r'(?:"(?P<key>[^"\\]*)")\s*='
 
-    token = r'(?:%s[ \t]*[\n]|[\r\n]|[\r]){0,1}%s'%(cp, k)
+    sp_token = r'(?:%s[ \t]*[\n]|[\r\n]|[\r]){0,1}%s'%(sp, k)
+    cp_token = r'(?:%s[ \t]*[\n]|[\r\n]|[\r]){0,1}%s'%(cp, k)
 
-    p = re.compile(token)
+    p = re.compile(sp_token)
     for r in p.finditer(content):
         key = r.group('key')
         comment = r.group('slash_comment') or ''
         # print comment
-        stringset.append({'key': key, 'comment': comment})
-    print stringset
+        key_comment[key] = comment
+
+    p = re.compile(cp_token)
+    for r in p.finditer(content):
+        key = r.group('key')
+        comment = r.group('star_comment') or ''
+        # print comment
+        if comment != '':
+            key_comment[key] = comment
+
+    return key_comment
 
 # Parsing strings file
 def get_strings_content(strings_path = None):
