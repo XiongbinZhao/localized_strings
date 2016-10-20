@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 from platforms import ios_parser
 from platforms import android_parser
-import os, plistlib, codecs, re, chardet, shutil
+import os, plistlib, codecs, re, shutil
 import xml.etree.ElementTree as etree
 
 format_encoding = 'UTF-16'

@@ -1,6 +1,8 @@
 
 #!/usr/bin/env python
 
+import fix_path
+
 import os
 import argparse
 import plistlib
