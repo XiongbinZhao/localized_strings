@@ -147,10 +147,19 @@ def output_txt_file(strings, set_number = None):
             text_file.write("**** Xcode_Proj_Path: " + pbxproj_path.encode("utf-8") + "\n")
 
     strings_type = strings["file_type"]
-    text_file.write("**** Set_Dir_Path: " + strings["Dir"].encode("utf-8") + "\n\n")
+    text_file.write("**** Set_Dir_Path: " + strings["Dir"].encode("utf-8") + "\n")
+
+    print_file_tag = False
 
     if strings_type == "strings":
         for dic in strings["content"]:
+            if print_file_tag == False:
+                if "file_tag" in dic.keys():
+                    text_file.write("**** File_Tag: " + dic["file_tag"].encode("utf-8") + "\n\n")
+                    print_file_tag = True
+                else:
+                    text_file.write("\n")
+
             text_file.write("**comment: " + dic["comment"].encode("utf-8") + "\n")
             text_file.write("**key: " + dic["key"].encode("utf-8") + "\n")
             text_file.write("**value: " + dic["value"].encode("utf-8") + "\n")
@@ -159,6 +168,13 @@ def output_txt_file(strings, set_number = None):
 
     elif strings_type == "stringsdict":
         for dic in strings["content"]:
+            if print_file_tag == False:
+                if "file_tag" in dic.keys():
+                    text_file.write("**** File_Tag: " + dic["file_tag"].encode("utf-8") + "\n\n")
+                    print_file_tag = True
+                else:
+                    text_file.write("\n")
+                    
             title_key = "NSLocalizedStringsdict"
             localized_format_key = "NSStringLocalizedFormatKey"
             value_type_key = "NSStringFormatValueTypeKey"

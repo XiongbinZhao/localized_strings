@@ -533,11 +533,14 @@ def start_parsing(strings_path):
         result_stringset = parse_strings(content)
         plain_text_content = get_strings_content(strings_path)
         key_comment = get_key_and_comment(plain_text_content)
+        file_tag = get_file_tag(plain_text_content)
         os.remove(temp_plist_path)
 
         for strings in result_stringset:
             if strings["key"] in key_comment.keys():
                 strings["comment"] = key_comment[strings["key"]]
+            if file_tag is not None:
+                strings["file_tag"] = file_tag
 
         if len(result_stringset) == 0:
             print("Format of Strings file is not correct: " + strings_path + "\n")
@@ -550,7 +553,17 @@ def start_parsing(strings_path):
         temp_plist_path = create_temp_plist(strings_path)
         content = content_from_plist(temp_plist_path)
         result_stringset = parse_stringsdict(content)
+        plain_text_content = get_strings_content(strings_path)
+        file_tag = get_file_tag(plain_text_content)
+        key_comment = get_stringsdict_section_key(plain_text_content)
         os.remove(temp_plist_path)
+
+        for strings in result_stringset:
+            if key_comment is not None:
+                if strings["NSLocalizedStringsdict"] in key_comment.keys():
+                    strings["comment"] = key_comment[strings["NSLocalizedStringsdict"]]
+            if file_tag is not None:
+                strings["file_tag"] = file_tag
 
         if len(result_stringset) == 0:
             print "---- Stringsdict file doesn't have any objects: " + strings_path + "\n"
@@ -565,6 +578,18 @@ def start_parsing(strings_path):
 
 # -----------------------------------------------------------------------------
 
+def get_file_tag(content):
+    if content is None:
+        return None
+
+    file_tag_token = r'(?:\s+Tag:(?P<file_tag>.*))'
+    p = re.compile(file_tag_token)
+    for r in p.finditer(content):
+        file_tag = r.group('file_tag') or ''
+        if file_tag != '':
+            return file_tag
+    return None
+
 def get_key_and_comment(content):
     if content is None:
         return
@@ -574,8 +599,8 @@ def get_key_and_comment(content):
     cp = r'(?:/\*(?P<star_comment>(?:[^*]|(?:\*+[^*/]))*\**)\*/)'
     k = r'(?:"(?P<key>[^"\\]*)")\s*='
 
-    sp_token = r'(?:%s[ \t]*[\n]|[\r\n]|[\r]){0,1}%s'%(sp, k)
-    cp_token = r'(?:%s[ \t]*[\n]|[\r\n]|[\r]){0,1}%s'%(cp, k)
+    sp_token = r'(?:%s[ \t]*[\n]*|[\r\n]*|[\r]*){0,1}%s'%(sp, k)
+    cp_token = r'(?:%s[ \t]*[\n]*|[\r\n]*|[\r]*){0,1}%s'%(cp, k)
 
     p = re.compile(sp_token)
     for r in p.finditer(content):
@@ -592,7 +617,30 @@ def get_key_and_comment(content):
         if comment != '':
             key_comment[key] = comment
 
+    section_tag_token = r'(?:Section-Tag:(?P<section_tag>.*))'
+    p = re.compile(section_tag_token)
+    for key,value in key_comment.iteritems():
+        for r in p.finditer(value):
+            section_tag = r.group('section_tag') or ''
+            key_comment[key] = section_tag
+
     return key_comment
+
+def get_stringsdict_section_key(content):
+    if content is None:
+        return
+
+    section_comment = {}
+    token = r'<!--\s*Section-Tag:(?P<section_tag>.*)\s*-->[\s\n\t\r]*<key>(?P<key>.*)</key>'
+
+    p = re.compile(token)
+    for r in p.finditer(content):
+        key = r.group('key') or ''
+        section_tag = r.group('section_tag') or ''
+        if key != '' and section_tag != '':
+            section_comment[key] = section_tag
+
+    return section_comment
 
 # Parsing strings file
 def get_strings_content(strings_path = None):
