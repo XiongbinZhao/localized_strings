@@ -183,6 +183,8 @@ def output_txt_file(strings, set_number = None):
 
             plural_rule_keys = ["zero", "one", "two", "few", "many", "other"]
             available_keys = dic.keys()
+            if "comment" in available_keys:
+                text_file.write("**" + "comment" + ": " + dic["comment"].encode("utf-8") + "\n")
             for key in [title_key, localized_format_key, value_type_key, spec_type_key, variable_key]:
                 if key in available_keys:
                     text_file.write("**" + key + ": " + dic[key].encode("utf-8") + "\n")
