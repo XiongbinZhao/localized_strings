@@ -534,13 +534,16 @@ def start_parsing(strings_path):
         plain_text_content = get_strings_content(strings_path)
         key_comment = get_key_and_comment(plain_text_content)
         file_tag = get_file_tag(plain_text_content)
+        key_section_tags = get_key_and_section_tags(key_comment)
         os.remove(temp_plist_path)
 
         for strings in result_stringset:
-            if strings["key"] in key_comment.keys():
+            if key_comment is not None and strings["key"] in key_comment.keys():
                 strings["comment"] = key_comment[strings["key"]]
             if file_tag is not None:
                 strings["file_tag"] = file_tag
+            if key_section_tags is not None and strings["key"] in key_section_tags.keys():
+                strings["section_tag"] = key_section_tags[strings["key"]]
 
         if len(result_stringset) == 0:
             print("Format of Strings file is not correct: " + strings_path + "\n")
@@ -555,13 +558,12 @@ def start_parsing(strings_path):
         result_stringset = parse_stringsdict(content)
         plain_text_content = get_strings_content(strings_path)
         file_tag = get_file_tag(plain_text_content)
-        key_comment = get_stringsdict_section_key(plain_text_content)
+        key_section_tags = get_stringsdict_section_key(plain_text_content)
         os.remove(temp_plist_path)
 
         for strings in result_stringset:
-            if key_comment is not None:
-                if strings["NSLocalizedStringsdict"] in key_comment.keys():
-                    strings["comment"] = key_comment[strings["NSLocalizedStringsdict"]]
+            if key_section_tags is not None and strings["NSLocalizedStringsdict"] in key_section_tags.keys():
+                strings["section_tag"] = key_section_tags[strings["NSLocalizedStringsdict"]]
             if file_tag is not None:
                 strings["file_tag"] = file_tag
 
@@ -617,14 +619,30 @@ def get_key_and_comment(content):
         if comment != '':
             key_comment[key] = comment
 
-    section_tag_token = r'(?:Section-Tag:(?P<section_tag>.*))'
-    p = re.compile(section_tag_token)
-    for key,value in key_comment.iteritems():
-        for r in p.finditer(value):
-            section_tag = r.group('section_tag') or ''
-            key_comment[key] = section_tag
+    # section_tag_token = r'(?:Section-Tag:(?P<section_tag>.*))'
+    # p = re.compile(section_tag_token)
+    # for key,value in key_comment.iteritems():
+    #     for r in p.finditer(value):
+    #         section_tag = r.group('section_tag') or ''
+    #         key_comment[key] = section_tag
 
     return key_comment
+
+def get_key_and_section_tags(key_comment):
+    if key_comment is None:
+        return
+
+    section_tag_token = r'(?:Section-Tag:(?P<section_tag>.*))'
+
+    key_section_tags = {}
+    for key, value in key_comment.iteritems():
+        p = re.compile(section_tag_token)
+        for r in p.finditer(value):
+            tag = r.group('section_tag') or ''
+            if tag is not '':
+                key_section_tags[key] = tag
+
+    return key_section_tags
 
 def get_stringsdict_section_key(content):
     if content is None:
